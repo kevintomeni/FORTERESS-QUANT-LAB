@@ -57,14 +57,70 @@ class Handler(BaseHTTPRequestHandler):
             account = account_status()
             return self.send_json(200 if account.get("connected") else 503,
                                   {"ok": bool(account.get("connected")), "account": account})
+        if not mt5.initialize():
+            return self.send_json(503, {"ok": False, "error": "MT5 initialize failed",
+                                        "mt5_error": str(mt5.last_error())})
+        if path == "/quote":
+            query = parse_qs(urlparse(self.path).query)
+            symbol = (query.get("symbol", ["XAUUSD"])[0] or "XAUUSD").upper()
+            info = mt5.symbol_info(symbol)
+            if info is None:
+                return self.send_json(404, {"ok": False, "error": "Symbole MT5 introuvable", "symbol": symbol})
+            if not info.visible and not mt5.symbol_select(symbol, True):
+                return self.send_json(503, {"ok": False, "error": "Impossible d'activer le symbole", "symbol": symbol})
+            tick = mt5.symbol_info_tick(symbol)
+            if tick is None or not tick.bid or not tick.ask:
+                return self.send_json(503, {"ok": False, "error": "Cotation Bid/Ask indisponible", "symbol": symbol,
+                                            "mt5_error": str(mt5.last_error())})
+            return self.send_json(200, {"ok": True, "symbol": symbol, "bid": float(tick.bid),
+                "ask": float(tick.ask), "last": float(getattr(tick, "last", 0) or 0),
+                "time": int(tick.time), "time_utc": datetime.fromtimestamp(tick.time, timezone.utc).isoformat(),
+                "digits": int(info.digits), "spread_points": int(info.spread), "read_only": True})
+        if path == "/positions":
+            items = mt5.positions_get()
+            if items is None:
+                return self.send_json(503, {"ok": False, "error": "Positions indisponibles",
+                                            "mt5_error": str(mt5.last_error())})
+            rows = []
+            account = mt5.account_info()
+            for p in items:
+                rows.append({"ticket": int(p.ticket), "time": int(p.time), "symbol": p.symbol,
+                    "type": "BUY" if p.type == mt5.POSITION_TYPE_BUY else "SELL",
+                    "volume": float(p.volume), "price_open": float(p.price_open), "price_current": float(p.price_current),
+                    "sl": float(p.sl), "tp": float(p.tp), "profit": float(p.profit), "swap": float(p.swap),
+                    "commission": float(getattr(p, "commission", 0) or 0), "magic": int(p.magic),
+                    "comment": str(p.comment), "currency": getattr(account, "currency", None)})
+            return self.send_json(200, {"ok": True, "count": len(rows), "positions": rows,
+                                        "observed_at": datetime.now(timezone.utc).isoformat(), "read_only": True})
+        if path == "/deals":
+            query = parse_qs(urlparse(self.path).query)
+            try:
+                days = max(1, min(90, int(query.get("days", ["30"])[0])))
+                count = max(1, min(500, int(query.get("count", ["100"])[0])))
+            except ValueError:
+                days, count = 30, 100
+            end = datetime.now(timezone.utc)
+            from datetime import timedelta
+            start = end - timedelta(days=days)
+            items = mt5.history_deals_get(start, end)
+            if items is None:
+                return self.send_json(503, {"ok": False, "error": "Historique des transactions indisponible",
+                                            "mt5_error": str(mt5.last_error())})
+            rows = []
+            for d in sorted(items, key=lambda x: x.time, reverse=True)[:count]:
+                rows.append({"ticket": int(d.ticket), "order": int(d.order), "time": int(d.time),
+                    "symbol": str(d.symbol), "type": str(d.type), "entry": str(d.entry),
+                    "volume": float(d.volume), "price": float(d.price), "profit": float(d.profit),
+                    "commission": float(d.commission), "swap": float(d.swap), "fee": float(getattr(d, "fee", 0) or 0),
+                    "comment": str(d.comment), "magic": int(d.magic)})
+            return self.send_json(200, {"ok": True, "count": len(rows), "days": days, "deals": rows,
+                                        "observed_at": datetime.now(timezone.utc).isoformat(), "read_only": True})
         if path == "/history/xauusd":
             query = parse_qs(urlparse(self.path).query)
             try:
                 count = max(10, min(500, int(query.get("count", ["100"])[0])))
             except ValueError:
                 count = 100
-            if not mt5.initialize():
-                return self.send_json(503, {"ok": False, "error": "MT5 initialize failed"})
             rates = mt5.copy_rates_from_pos("XAUUSD", mt5.TIMEFRAME_M15, 0, count)
             if rates is None:
                 return self.send_json(503, {"ok": False, "error": "Historique XAUUSD indisponible",
@@ -74,6 +130,10 @@ class Handler(BaseHTTPRequestHandler):
                      "close": float(r["close"]), "tick_volume": int(r["tick_volume"])}
                     for r in rates]
             return self.send_json(200, {"ok": True, "symbol": "XAUUSD", "timeframe": "M15", "bars": bars})
+        if path in ("/health", "/accounts"):
+            account = account_status()
+            return self.send_json(200 if account.get("connected") else 503,
+                                  {"ok": bool(account.get("connected")), "account": account})
         return self.send_json(404, {"ok": False, "error": "Not found"})
 
     def log_message(self, fmt, *args):
