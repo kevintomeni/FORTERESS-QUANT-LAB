@@ -7,7 +7,8 @@ export default async function handler(req, res) {
   const token = process.env.MT5_BRIDGE_TOKEN;
   if (!bridgeUrl || !token) return res.status(500).json({ ok: false, error: "Configuration du pont MT5 manquante" });
   const parsed = Number.parseInt(req.query.count || "500", 10);
-  const count = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 1), 500) : 500;
+  // The MT5 bridge requires at least 100 candles.
+  const count = Number.isFinite(parsed) ? Math.min(Math.max(parsed, 100), 500) : 500;
   try {
     const baseUrl = bridgeUrl.replace(/\/+$/, "");
     const response = await fetch(`${baseUrl}/history/xauusd?count=${count}`, {
