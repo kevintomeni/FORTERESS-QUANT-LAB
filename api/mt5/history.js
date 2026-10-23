@@ -15,7 +15,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await fetch(
-      `${bridgeUrl.replace(/\/+$/, "")}/history/xauusd?count=${count}`,
+      `${bridgeUrl.replace(/\\/+$/, "")}/history/xauusd?count=${count}`,
       {
         headers: { Authorization: `Bearer ${token}` },
         signal: AbortSignal.timeout(15000)
@@ -26,7 +26,12 @@ export default async function handler(req, res) {
     try { data = JSON.parse(body); } catch { data = { details: body.slice(0, 1000) }; }
 
     if (!response.ok) {
-      return res.status(502).json({ ok: false, error: "Le pont MT5 a refusé la demande", bridgeStatus: response.status });
+      return res.status(502).json({
+        ok: false,
+        error: "Le pont MT5 a refusé la demande",
+        bridgeStatus: response.status,
+        bridgeDetails: data
+      });
     }
     return res.status(200).json({ ok: true, data });
   } catch {
