@@ -28,14 +28,9 @@ export default async function handler(req, res) {
     );
 
     const body = await response.text();
-
-    return res
-      .status(response.ok ? 200 : 502)
-      .json({
-        ok: response.ok,
-        bridgeStatus: response.status,
-        details: body.slice(0, 1000)
-      });
+    let data;
+    try { data = JSON.parse(body); } catch { data = { raw: body.slice(0, 1000) }; }
+    return res.status(response.ok ? 200 : 502).json({ ok: response.ok, bridgeStatus: response.status, data });
   } catch {
     return res.status(502).json({
       ok: false,
