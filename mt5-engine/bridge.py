@@ -59,6 +59,7 @@ def calculate_signal():
     closes = [float(r["close"]) for r in rates]
     def sma(values, n):
         return sum(values[-n:]) / n
+    # Compare the two most recent closed candles without using the forming candle.
     fast_prev, slow_prev = sma(closes[:-1], 8), sma(closes[:-1], 21)
     fast_now, slow_now = sma(closes, 8), sma(closes, 21)
     side = "BUY" if fast_prev <= slow_prev and fast_now > slow_now else "SELL" if fast_prev >= slow_prev and fast_now < slow_now else "NONE"
@@ -233,6 +234,8 @@ if __name__ == "__main__":
     print(f"Pont MT5 lecture seule actif sur {HOST}:{PORT}")
     print("Le pont ne contient aucune fonction d'envoi d'ordre.")
     if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
+        if not mt5.initialize():
+            print(f"MT5 initialization failed: {mt5.last_error()}")
         threading.Thread(target=signal_watcher, daemon=True).start()
         print("Surveillance des signaux M15 active ; alertes Telegram activées.")
     else:
