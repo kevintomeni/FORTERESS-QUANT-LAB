@@ -85,12 +85,12 @@ def send_telegram_signal(signal):
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         return False
     message = (
-        f"FORTERESS QUANT LAB — SIGNAL {signal['signal']}\\n"
-        f"{signal['symbol']} · {signal['timeframe']}\\n"
-        f"Stratégie : {signal['strategy']}\\n"
-        f"Bid/Ask : {signal['bid']} / {signal['ask']}\\n"
-        f"Bougie clôturée UTC : {signal['last_closed_candle_time']}\\n"
-        "Flux frais : oui\\nMode : signal uniquement — aucun ordre envoyé"
+        f"FORTERESS QUANT LAB — SIGNAL {signal['signal']}\n"
+        f"{signal['symbol']} · {signal['timeframe']}\n"
+        f"Stratégie : {signal['strategy']}\n"
+        f"Bid/Ask : {signal['bid']} / {signal['ask']}\n"
+        f"Bougie clôturée UTC : {signal['last_closed_candle_time']}\n"
+        "Flux frais : oui\nMode : signal uniquement — aucun ordre envoyé"
     )
     payload = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": message}).encode("utf-8")
     request = Request("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage",
