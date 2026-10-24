@@ -9,7 +9,7 @@
 <section class="panel wide"><h2>Contrôle des flux</h2><p class="muted">Le flux « réel » ci-dessous est le flux public spot BTC-USD de Coinbase Exchange, pas un flux Weltrade/MT5. Le mode simulé est généré localement et ne doit jamais être confondu avec une cotation de marché.</p><div class="actions"><button id="realBtn">Charger flux public réel</button><button id="simBtn">Générer simulation</button><button id="compareBtn">Comparer les sources</button><button id="refreshBtn">Actualiser</button></div><div id="feedStatus" class="status">Aucun flux validé.</div><div class="small">Validation : réponse HTTP, format OHLC, horodatage, ordre chronologique, valeurs positives, bougies non dupliquées et âge de la dernière bougie. Le fournisseur peut limiter ou bloquer les requêtes du navigateur.</div></section>
 <section class="panel wide"><h2>Prix et moyennes mobiles</h2><canvas id="chart" width="1000" height="300" aria-label="Graphique BTC/USD"></canvas><div class="small">La courbe est dessinée à partir des bougies chargées. Si la source est simulée, toute la vue est explicitement marquée SIMULATION.</div></section>
 <section class="panel"><h2>Agent technique · ICT + OPR</h2><div id="ictStatus" class="status">En attente des données…</div><ul id="ictList"><li>Les conditions seront évaluées sur les bougies disponibles.</li></ul><div class="small">OPR est ici défini comme Opening Price Range : première heure de la journée UTC, soit 4 bougies M15. La logique ICT présentée est un prototype explicable, pas une interprétation complète de tous les modèles ICT.</div></section>
-<section class="panel"><h2>Order Flow · contrôle de disponibilité</h2><div id="ofStatus" class="status warn">Données d’Order Flow non chargées.</div><ul><li>OHLCV seul ne fournit pas un véritable footprint bid/ask.</li><li>Volume de bougie seul ne permet pas de confirmer le delta acheteur/vendeur.</li><li>Une source de transactions horodatées avec côté agresseur, ou un flux footprint dédié, est nécessaire pour calculer delta/CVD avec confiance.</li></ul><div class="small">Le module ne fabriquera pas de delta Order Flow à partir de bougies.</div></section>
+<section class="panel"><h2>Order Flow · flux de transactions</h2><div id="ofStatus" class="status warn">Connexion au flux public de transactions en attente.</div><div class="stats"><div class="stat"><div class="label">Delta acheteur − vendeur (BTC)</div><div class="value" id="ofDelta">—</div></div><div class="stat"><div class="label">Volume acheteur agressif</div><div class="value" id="ofBuy">—</div></div><div class="stat"><div class="label">Volume vendeur agressif</div><div class="value" id="ofSell">—</div></div><div class="stat"><div class="label">Transactions / 60 s</div><div class="value" id="ofTrades">—</div></div></div><div id="ofMeta" class="small">Source : Coinbase Exchange public BTC-USD. Ce flux ne représente ni Weltrade/MT5 ni le marché mondial consolidé.</div><div class="actions"><button id="ofRefresh">Actualiser Order Flow</button></div><div class="tablewrap"><table><thead><tr><th>Minute UTC</th><th>Trades</th><th>Delta BTC</th><th>Volume achat BTC</th><th>Volume vente BTC</th></tr></thead><tbody id="ofRows"><tr><td colspan="5">En attente du flux.</td></tr></tbody></table></div><div class="small">Delta calculé sur les transactions exécutées, avec le côté agresseur déduit du côté maker fourni par Coinbase. Si le flux est ancien ou indisponible, aucun signal Order Flow n’est émis. L’API REST ne fournit qu’un historique récent, pas un footprint historique complet.</div></section>
 <section class="panel wide"><h2>Backtest exploratoire</h2><div class="actions"><label>Frais aller-retour (%) <input id="fees" type="number" min="0" max="2" step="0.01" value="0.10" style="width:95px;background:#0b1220;color:var(--text);border:1px solid #30415e;border-radius:7px;padding:8px"></label><label>Décalage slippage (%) <input id="slippage" type="number" min="0" max="2" step="0.01" value="0.05" style="width:95px;background:#0b1220;color:var(--text);border:1px solid #30415e;border-radius:7px;padding:8px"></label><button id="backtestBtn">Lancer test historique</button></div><div class="stats"><div class="stat"><div class="label">Trades simulés</div><div class="value" id="trades">—</div></div><div class="stat"><div class="label">Taux gagnant</div><div class="value" id="winrate">—</div></div><div class="stat"><div class="label">Résultat net %</div><div class="value" id="net">—</div></div><div class="stat"><div class="label">Drawdown max.</div><div class="value" id="drawdown">—</div></div></div><div id="backtestStatus" class="status">Aucun test lancé. Un résultat historique n’est pas une promesse de performance future.</div><div class="tablewrap"><table><thead><tr><th>Entrée UTC</th><th>Sortie UTC</th><th>Sens</th><th>Entrée</th><th>Sortie</th><th>Net %</th><th>Raison</th></tr></thead><tbody id="tradeRows"><tr><td colspan="7" class="muted">Aucun trade calculé.</td></tr></tbody></table></div><p class="small">Règle de démonstration : biais ICT simplifié (cassure d’un swing récent + retour dans une FVG approximée) combiné à la cassure de l’OPR. Entrée sur la bougie suivante, sortie sur signal inverse ou limite temporelle. Les règles sont un prototype à auditer, sans sélection optimale de paramètres ni validation hors échantillon.</p></section>
 <section class="panel wide"><h2>Audit des données</h2><div class="tablewrap"><table><tbody id="audit"><tr><th>Source</th><td>En attente</td></tr></tbody></table></div></section>
 </div><p class="foot">Avertissement : outil de recherche et de simulation uniquement. Il ne contient aucun endpoint ni code de transmission d’ordres. Ne pas utiliser les résultats comme conseil financier.</p></main>
@@ -89,6 +89,30 @@ function analyze(){
  $('ictStatus').textContent=opr;$('ictList').innerHTML=ict.map(s=>'<li>'+esc(s)+'</li>').join('');
  $('ofStatus').textContent='Non disponible : données chargées = bougies OHLCV uniquement. Aucun delta/CVD/footprint calculé.';
 }
+async function loadOrderFlow(){
+ const button=$('ofRefresh');if(button)button.disabled=true;
+ $('ofStatus').textContent='Chargement des transactions exécutées BTC-USD…';
+ try{
+  const r=await fetch('/api/market/orderflow?limit=1000',{cache:'no-store',headers:{'Accept':'application/json'}});
+  const d=await r.json();
+  if(!r.ok||!d.ok||d.status!=='live_recent_tape')throw Error(d.message||d.error||('HTTP '+r.status));
+  $('ofStatus').textContent='FLUX TRANSACTIONS VALIDE — '+d.source+' — dernière transaction il y a '+d.ageSeconds+' s.';
+  $('ofStatus').className='status ok';
+  $('ofDelta').textContent=Number(d.window.deltaBTC).toFixed(5);
+  $('ofDelta').className='value '+(d.window.deltaBTC>=0?'ok':'bad');
+  $('ofBuy').textContent=Number(d.window.buyVolumeBTC).toFixed(5);
+  $('ofSell').textContent=Number(d.window.sellVolumeBTC).toFixed(5);
+  $('ofTrades').textContent=d.window.trades;
+  $('ofMeta').textContent='Instrument '+d.product+' spot · source Coinbase Exchange · fenêtre '+d.windowSeconds+' s · dernière transaction '+d.latestTradeTime+' · '+d.receivedTradeCount+' trades reçus. Non Weltrade/MT5.';
+  $('ofRows').innerHTML=d.minuteBuckets.slice().reverse().map(x=>'<tr><td>'+esc(x.start)+'</td><td>'+x.trades+'</td><td class="'+(x.deltaBTC>=0?'ok':'bad')+'">'+Number(x.deltaBTC).toFixed(5)+'</td><td>'+Number(x.buyVolumeBTC).toFixed(5)+'</td><td>'+Number(x.sellVolumeBTC).toFixed(5)+'</td></tr>').join('')||'<tr><td colspan="5">Pas de transaction dans les dernières minutes.</td></tr>';
+  auditRow('Order Flow source',d.source+' '+d.product);auditRow('Order Flow statut','flux de transactions validé');auditRow('Order Flow âge secondes',d.ageSeconds);auditRow('Order Flow trades reçus',d.receivedTradeCount);
+ }catch(e){
+  $('ofStatus').className='status bad';$('ofStatus').textContent='ORDER FLOW INDISPONIBLE — '+e.message+' Aucun delta synthétique ne sera affiché.';
+  $('ofDelta').textContent='—';$('ofBuy').textContent='—';$('ofSell').textContent='—';$('ofTrades').textContent='—';
+  $('ofRows').innerHTML='<tr><td colspan="5">Flux indisponible ou ancien. Pas de remplacement par OHLCV.</td></tr>';
+  auditRow('Order Flow erreur',e.message);
+ }finally{if(button)button.disabled=false}
+}
 function backtest(){
  if(bars.length<80){$('backtestStatus').textContent='Il faut au moins 80 bougies valides.';return}
  const b=bars,fee=Math.max(0,Number($('fees').value)||0)/100,slip=Math.max(0,Number($('slippage').value)||0)/100,cost=(fee+slip)*2,trades=[];let side=0,entry=0,entryTime=0,eq=1,peak=1,maxDD=0;
@@ -113,6 +137,6 @@ function backtest(){
  $('backtestStatus').textContent='Test terminé sur '+b.length+' bougies de la source « '+source+' ». Net = rendement composé après frais et slippage configurés, sans levier ni financement. Prototype non validé, pas de données futures utilisées pour l’entrée; tester sur plusieurs périodes avant toute conclusion.';
  auditRow('Dernier backtest',new Date().toISOString());auditRow('Backtest source',source);auditRow('Trades',trades.length);auditRow('Frais round-trip %',fee*200);auditRow('Slippage round-trip %',slip*200);auditRow('Net composé %',net);
 }
-$('realBtn').onclick=loadReal;$('refreshBtn').onclick=loadReal;$('simBtn').onclick=simulate;$('compareBtn').onclick=compare;$('backtestBtn').onclick=backtest;
-$('overall').textContent='MODE TEST — ORDRES DÉSACTIVÉS';simulate();
+$('realBtn').onclick=loadReal;$('refreshBtn').onclick=loadReal;$('simBtn').onclick=simulate;$('compareBtn').onclick=compare;$('backtestBtn').onclick=backtest;$('ofRefresh').onclick=loadOrderFlow;
+$('overall').textContent='MODE TEST — ORDRES DÉSACTIVÉS';simulate();loadOrderFlow();
 </script></body></html>
