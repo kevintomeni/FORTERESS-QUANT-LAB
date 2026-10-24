@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#080d18"><title>FORTERESS QUANT LAB — BTC Research Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#080d18;--panel:#101827;--line:#233149;--muted:#92a0b7;--text:#edf3ff;--green:#4adea2;--red:#ff7385;--gold:#f2c66d;--blue:#6ba9ff}*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#162744 0,transparent 38%),var(--bg);color:var(--text);font:15px/1.5 system-ui,Segoe UI,sans-serif}main{max-width:1150px;margin:auto;padding:24px}h1{margin:0;font-size:clamp(24px,4vw,36px)}h2{font-size:18px;margin:0 0 12px}.muted,.small{color:var(--muted)}.small{font-size:12px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap;margin-bottom:20px}.tag{border:1px solid var(--line);border-radius:20px;padding:5px 10px;font-size:12px}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.panel{background:rgba(16,24,39,.94);border:1px solid var(--line);border-radius:15px;padding:18px;min-width:0}.wide{grid-column:1/-1}.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:14px}.stat{background:#0b1220;border:1px solid var(--line);padding:12px;border-radius:10px}.label{font-size:12px;color:var(--muted)}.value{font-size:23px;font-weight:750;overflow-wrap:anywhere}button,select{background:#16243a;color:var(--text);border:1px solid #30415e;border-radius:8px;padding:9px 12px;font:inherit;cursor:pointer}button:disabled{opacity:.5;cursor:wait}.actions{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.status{padding:10px;border-radius:8px;background:#0b1220;border:1px solid var(--line);margin:10px 0}.ok{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--gold)}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;border-bottom:1px solid var(--line);padding:9px 6px}th{color:var(--muted);font-weight:600}.tablewrap{overflow:auto}ul{padding-left:20px}.foot{margin:18px 0;color:var(--muted);font-size:12px}canvas{width:100%;height:240px;display:block}.pill{display:inline-block;padding:3px 8px;border-radius:6px;background:#18283e;margin:2px;font-size:12px}@media(max-width:760px){main{padding:14px}.grid{grid-template-columns:1fr}.wide{grid-column:auto}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.value{font-size:20px}}
+</style></head><body><main>
+<div class="top"><div><div class="muted">FORTERESS QUANT LAB / RESEARCH</div><h1>BTC/USD · Simulation & backtests</h1><div class="muted">Laboratoire en lecture seule — aucune exécution d’ordres</div></div><span class="tag" id="overall">Initialisation…</span></div>
+<div class="stats"><div class="stat"><div class="label">Source sélectionnée</div><div class="value" id="sourceName">—</div><div class="small" id="sourceTime">—</div></div><div class="stat"><div class="label">Dernier BTC/USD</div><div class="value" id="lastPrice">—</div><div class="small" id="lastCandle">—</div></div><div class="stat"><div class="label">Bougies valides</div><div class="value" id="barsCount">0</div><div class="small">Intervalle 15 minutes</div></div><div class="stat"><div class="label">Statut données</div><div class="value" id="dataStatus">—</div><div class="small" id="dataReason">—</div></div></div>
+<div class="grid">
+<section class="panel wide"><h2>Contrôle des flux</h2><p class="muted">Le flux « réel » ci-dessous est le flux public spot BTC-USD de Coinbase Exchange, pas un flux Weltrade/MT5. Le mode simulé est généré localement et ne doit jamais être confondu avec une cotation de marché.</p><div class="actions"><button id="realBtn">Charger flux public réel</button><button id="simBtn">Générer simulation</button><button id="compareBtn">Comparer les sources</button><button id="refreshBtn">Actualiser</button></div><div id="feedStatus" class="status">Aucun flux validé.</div><div class="small">Validation : réponse HTTP, format OHLC, horodatage, ordre chronologique, valeurs positives, bougies non dupliquées et âge de la dernière bougie. Le fournisseur peut limiter ou bloquer les requêtes du navigateur.</div></section>
+<section class="panel wide"><h2>Prix et moyennes mobiles</h2><canvas id="chart" width="1000" height="300" aria-label="Graphique BTC/USD"></canvas><div class="small">La courbe est dessinée à partir des bougies chargées. Si la source est simulée, toute la vue est explicitement marquée SIMULATION.</div></section>
+<section class="panel"><h2>Agent technique · ICT + OPR</h2><div id="ictStatus" class="status">En attente des données…</div><ul id="ictList"><li>Les conditions seront évaluées sur les bougies disponibles.</li></ul><div class="small">OPR est ici défini comme Opening Price Range : première heure de la journée UTC, soit 4 bougies M15. La logique ICT présentée est un prototype explicable, pas une interprétation complète de tous les modèles ICT.</div></section>
+<section class="panel"><h2>Order Flow · contrôle de disponibilité</h2><div id="ofStatus" class="status warn">Données d’Order Flow non chargées.</div><ul><li>OHLCV seul ne fournit pas un véritable footprint bid/ask.</li><li>Volume de bougie seul ne permet pas de confirmer le delta acheteur/vendeur.</li><li>Une source de transactions horodatées avec côté agresseur, ou un flux footprint dédié, est nécessaire pour calculer delta/CVD avec confiance.</li></ul><div class="small">Le module ne fabriquera pas de delta Order Flow à partir de bougies.</div></section>
+<section class="panel wide"><h2>Backtest exploratoire</h2><div class="actions"><label>Frais aller-retour (%) <input id="fees" type="number" min="0" max="2" step="0.01" value="0.10" style="width:95px;background:#0b1220;color:var(--text);border:1px solid #30415e;border-radius:7px;padding:8px"></label><label>Décalage slippage (%) <input id="slippage" type="number" min="0" max="2" step="0.01" value="0.05" style="width:95px;background:#0b1220;color:var(--text);border:1px solid #30415e;border-radius:7px;padding:8px"></label><button id="backtestBtn">Lancer test historique</button></div><div class="stats"><div class="stat"><div class="label">Trades simulés</div><div class="value" id="trades">—</div></div><div class="stat"><div class="label">Taux gagnant</div><div class="value" id="winrate">—</div></div><div class="stat"><div class="label">Résultat net %</div><div class="value" id="net">—</div></div><div class="stat"><div class="label">Drawdown max.</div><div class="value" id="drawdown">—</div></div></div><div id="backtestStatus" class="status">Aucun test lancé. Un résultat historique n’est pas une promesse de performance future.</div><div class="tablewrap"><table><thead><tr><th>Entrée UTC</th><th>Sortie UTC</th><th>Sens</th><th>Entrée</th><th>Sortie</th><th>Net %</th><th>Raison</th></tr></thead><tbody id="tradeRows"><tr><td colspan="7" class="muted">Aucun trade calculé.</td></tr></tbody></table></div><p class="small">Règle de démonstration : biais ICT simplifié (cassure d’un swing récent + retour dans une FVG approximée) combiné à la cassure de l’OPR. Entrée sur la bougie suivante, sortie sur signal inverse ou limite temporelle. Les règles sont un prototype à auditer, sans sélection optimale de paramètres ni validation hors échantillon.</p></section>
+<section class="panel wide"><h2>Audit des données</h2><div class="tablewrap"><table><tbody id="audit"><tr><th>Source</th><td>En attente</td></tr></tbody></table></div></section>
+</div><p class="foot">Avertissement : outil de recherche et de simulation uniquement. Il ne contient aucun endpoint ni code de transmission d’ordres. Ne pas utiliser les résultats comme conseil financier.</p></main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let bars=[],source='none',audit=[],compareResult=null;
+const iso=t=>new Date(t*1000).toISOString().replace('T',' ').replace('.000Z',' UTC');
+const num=(x,d=2)=>Number(x).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+function auditRow(k,v){audit.unshift([k,String(v)]);audit=audit.slice(0,18);$('audit').innerHTML=audit.map(([a,b])=>'<tr><th>'+esc(a)+'</th><td>'+esc(b)+'</td></tr>').join('')}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function setStatus(msg,cls=''){ $('feedStatus').className='status '+cls; $('feedStatus').textContent=msg }
+function validate(raw,label){
+ if(!Array.isArray(raw)||raw.length<30)throw Error('Historique trop court : '+(raw?.length||0)+' bougies, minimum 30.');
+ const clean=raw.map(b=>({time:Number(b.time),low:Number(b.low),high:Number(b.high),open:Number(b.open),close:Number(b.close),volume:Number(b.volume||0)}));
+ for(let i=0;i<clean.length;i++){const b=clean[i];if(![b.time,b.low,b.high,b.open,b.close,b.volume].every(Number.isFinite)||b.time<=0||Math.min(b.low,b.high,b.open,b.close)<=0||b.high<Math.max(b.open,b.close,b.low)||b.low>Math.min(b.open,b.close,b.high))throw Error('Bougie OHLC invalide à l’index '+i);if(i&&clean[i].time<=clean[i-1].time)throw Error('Horodatages non strictement croissants ou doublons');}
+ const now=Date.now()/1000,last=clean[clean.length-1],age=now-(last.time+900);
+ return {bars:clean,label,age,validatedAt:new Date().toISOString(),fresh:age<3600&&age>-900};
+}
+function setBars(result){
+ bars=result.bars;source=result.label;
+ $('sourceName').textContent=source;$('sourceTime').textContent='Vérifié '+new Date(result.validatedAt).toLocaleTimeString('fr-FR');
+ $('lastPrice').textContent='$'+num(bars.at(-1).close);$('lastCandle').textContent=iso(bars.at(-1).time);
+ $('barsCount').textContent=bars.length;$('dataStatus').textContent=result.fresh?'VALIDE':'ANCIEN';
+ $('dataReason').textContent='Âge bougie : '+Math.round(result.age/60)+' min';
+ $('overall').textContent=source.toUpperCase();$('overall').className='tag '+(source==='Coinbase public'?'ok':'warn');
+ setStatus(source+' : '+bars.length+' bougies validées. '+(result.fresh?'Dernière bougie récente.':'Attention : dernière bougie ancienne.'),result.fresh?'ok':'warn');
+ auditRow('Source active',source);auditRow('Bougies',bars.length);auditRow('Dernière bougie UTC',iso(bars.at(-1).time));auditRow('Âge dernière bougie (min)',Math.round(result.age/60));auditRow('Horodatage de validation',result.validatedAt);auditRow('Contrôle OHLC', 'réussi');auditRow('Contrôle doublons/ordre','réussi');
+ draw();analyze();
+}
+async function loadReal(){
+ $('realBtn').disabled=true;setStatus('Récupération de Coinbase Exchange…');
+ try{
+ const url='https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=900';
+ const r=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status+' depuis Coinbase');
+ const data=await r.json();if(!Array.isArray(data))throw Error('Réponse non tabulaire');
+ // Coinbase candle layout: [time, low, high, open, close, volume], newest-first.
+ const raw=data.map(a=>({time:a[0],low:a[1],high:a[2],open:a[3],close:a[4],volume:a[5]})).sort((a,b)=>a.time-b.time);
+ const result=validate(raw,'Coinbase public');setBars(result);auditRow('Endpoint','Coinbase Exchange public REST');auditRow('Type de flux','BTC-USD spot public, non Weltrade/MT5');auditRow('HTTP',r.status);
+ }catch(e){setStatus('Flux réel non validé : '+e.message+'. Les données simulées ne seront pas présentées comme réelles.','bad');$('dataStatus').textContent='ÉCHEC';$('dataReason').textContent='Aucun remplacement automatique';auditRow('Erreur flux réel',e.message);$('overall').textContent='FLUX NON VALIDÉ';}
+ finally{$('realBtn').disabled=false}
+}
+function simulate(){
+ const now=Math.floor(Date.now()/1000/900)*900,raw=[];let p=65000;
+ for(let i=239;i>=0;i--){const t=now-i*900;const drift=Math.sin(i/19)*28+(Math.random()-.5)*170;const o=p;p=Math.max(1000,p+drift);const c=p,wig=Math.random()*90;raw.push({time:t,open:o,close:c,high:Math.max(o,c)+wig,low:Math.min(o,c)-wig,volume:Math.random()*30})}
+ // The simulated source is stamped as synthetic and never uses a live-price label.
+ const res=validate(raw.sort((a,b)=>a.time-b.time),'Simulation locale');res.fresh=false;res.age=0;setBars(res);$('dataStatus').textContent='SIMULÉ';$('dataReason').textContent='Données artificielles';$('sourceTime').textContent='Généré localement';setStatus('SIMULATION LOCALE : données artificielles, non issues d’un marché.','warn');auditRow('Nature des données','ARTIFICIELLES — ne pas comparer comme une vraie cotation');
+}
+async function compare(){
+ const prior=bars.slice();const priorSource=source;setStatus('Comparaison : récupération d’un nouveau snapshot Coinbase…');
+ try{const r=await fetch('https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=900',{headers:{'Accept':'application/json'},cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status);const data=await r.json();const res=validate(data.map(a=>({time:a[0],low:a[1],high:a[2],open:a[3],close:a[4],volume:a[5]})).sort((a,b)=>a.time-b.time),'Coinbase public');
+ const same=prior.length&&priorSource==='Coinbase public'&&prior.at(-1).time===res.bars.at(-1).time&&Math.abs(prior.at(-1).close-res.bars.at(-1).close)<0.01;
+ auditRow('Comparaison des flux','Coinbase snapshot HTTP '+r.status);auditRow('Snapshot déjà actif identique',same?'oui':'non / comparaison impossible avec la source active');auditRow('Dernier close Coinbase','$'+num(res.bars.at(-1).close));auditRow('Différence au dernier timestamp','Une comparaison valide exige le même instrument et intervalle.');compareResult={last:res.bars.at(-1),same};setStatus('Comparaison effectuée. Pour comparer réellement simulation vs réel, les sources doivent partager instrument, intervalle et horodatages. Les données synthétiques ne sont pas des prix de marché.','ok');
+ }catch(e){setStatus('Comparaison impossible : '+e.message,'bad');auditRow('Erreur comparaison',e.message)}
+}
+function sma(i,n){if(i+1<n)return null;let s=0;for(let j=i-n+1;j<=i;j++)s+=bars[j].close;return s/n}
+function draw(){
+ const c=$('chart'),ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);if(!bars.length)return;
+ const arr=bars.slice(-120),lo=Math.min(...arr.map(b=>b.low)),hi=Math.max(...arr.map(b=>b.high)),span=hi-lo||1;
+ ctx.strokeStyle='#233149';ctx.lineWidth=1;for(let i=0;i<5;i++){let y=15+i*(h-35)/4;ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke()}
+ function line(fn,color){ctx.beginPath();ctx.strokeStyle=color;ctx.lineWidth=2;arr.forEach((b,i)=>{const original=bars.length-arr.length+i,v=fn(original);if(v===null||!Number.isFinite(v))return;const x=i/(arr.length-1)*w,y=h-20-(v-lo)/span*(h-40);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)});ctx.stroke()}
+ line(i=>bars[i].close,'#6ba9ff');line(i=>sma(i,8),'#f2c66d');line(i=>sma(i,21),'#b48aff');
+ ctx.fillStyle='#92a0b7';ctx.font='13px system-ui';ctx.fillText('$'+num(hi),8,15);ctx.fillText('$'+num(lo),8,h-5);ctx.fillText(source.toUpperCase(),w-180,18);
+}
+function analyze(){
+ if(!bars.length)return;
+ const b=bars, n=b.length, last=b[n-1], day=Math.floor(last.time/86400), dayBars=b.filter(x=>Math.floor(x.time/86400)===day),opening=dayBars.slice(0,4);
+ let ict=[],opr='OPR indisponible';
+ if(opening.length===4){const hi=Math.max(...opening.map(x=>x.high)),lo=Math.min(...opening.map(x=>x.low));opr='OPR UTC : '+num(lo)+' — '+num(hi);if(last.close>hi)ict.push('Prix au-dessus de l’OPR UTC : biais intraday haussier potentiel.');else if(last.close<lo)ict.push('Prix sous l’OPR UTC : biais intraday baissier potentiel.');else ict.push('Prix dans la plage OPR UTC : pas de cassure confirmée.');}
+ else ict.push('Pas assez de bougies pour calculer l’OPR de la journée UTC.');
+ const i=n-1, swing=b.slice(Math.max(0,i-12),i-2), sh=Math.max(...swing.map(x=>x.high)),sl=Math.min(...swing.map(x=>x.low));
+ const bullFvg=i>=2&&b[i].low>b[i-2].high, bearFvg=i>=2&&b[i].high<b[i-2].low;
+ if(last.close>sh)ict.push('Cassure au-dessus du plus haut des 10 bougies précédentes : BOS haussier simplifié.');
+ if(last.close<sl)ict.push('Cassure sous le plus bas des 10 bougies précédentes : BOS baissier simplifié.');
+ if(bullFvg)ict.push('FVG haussière approximée détectée sur les 3 dernières bougies.');
+ if(bearFvg)ict.push('FVG baissière approximée détectée sur les 3 dernières bougies.');
+ $('ictStatus').textContent=opr;$('ictList').innerHTML=ict.map(s=>'<li>'+esc(s)+'</li>').join('');
+ $('ofStatus').textContent='Non disponible : données chargées = bougies OHLCV uniquement. Aucun delta/CVD/footprint calculé.';
+}
+function backtest(){
+ if(bars.length<80){$('backtestStatus').textContent='Il faut au moins 80 bougies valides.';return}
+ const b=bars,fee=Math.max(0,Number($('fees').value)||0)/100,slip=Math.max(0,Number($('slippage').value)||0)/100,cost=(fee+slip)*2,trades=[];let side=0,entry=0,entryTime=0,eq=1,peak=1,maxDD=0;
+ for(let i=30;i<b.length-2;i++){
+ const prev=b[i-1],cur=b[i],next=b[i+1],fast=sma(i,8),slow=sma(i,21),pf=sma(i-1,8),ps=sma(i-1,21);
+ const swing=b.slice(Math.max(0,i-12),i-2),sh=Math.max(...swing.map(x=>x.high)),sl=Math.min(...swing.map(x=>x.low));
+ const fvgBull=i>=2&&cur.low>b[i-2].high,fvgBear=i>=2&&cur.high<b[i-2].low;
+ const day=Math.floor(cur.time/86400),op=b.filter(x=>Math.floor(x.time/86400)===day).slice(0,4);const opReady=op.length===4,oh=opReady?Math.max(...op.map(x=>x.high)):Infinity,ol=opReady?Math.min(...op.map(x=>x.low)):-Infinity;
+ const bull=(pf<=ps&&fast>slow||cur.close>sh&&fvgBull)&&opReady&&cur.close>oh;
+ const bear=(pf>=ps&&fast<slow||cur.close<sl&&fvgBear)&&opReady&&cur.close<ol;
+ let desired=bull?1:bear?-1:0;
+ if(side!==0&&(desired===-side||i-entryTime>=32)){
+ const exit=next.open,ret=side*(exit-entry)/entry-cost;
+ trades.push({entryTime:b[entryTime].time,exitTime:next.time,side,entry,exit,ret,reason:desired===-side?'signal inverse':'limite temps'});eq*=1+ret;peak=Math.max(peak,eq);maxDD=Math.max(maxDD,(peak-eq)/peak);side=0;
+ }
+ if(side===0&&desired!==0){side=desired;entry=next.open;entryTime=i+1}
+ }
+ if(side!==0){const exit=b.at(-1).close,ret=side*(exit-entry)/entry-cost;trades.push({entryTime:b[entryTime].time,exitTime:b.at(-1).time,side,entry,exit,ret,reason:'fin historique'});eq*=1+ret;peak=Math.max(peak,eq);maxDD=Math.max(maxDD,(peak-eq)/peak)}
+ const wins=trades.filter(t=>t.ret>0).length,net=(eq-1)*100;
+ $('trades').textContent=trades.length;$('winrate').textContent=trades.length?num(wins/trades.length*100)+'%':'—';$('net').textContent=trades.length?num(net)+'%':'—';$('net').className='value '+(net>=0?'ok':'bad');$('drawdown').textContent=num(maxDD*100)+'%';
+ $('tradeRows').innerHTML=trades.slice(-30).reverse().map(t=>'<tr><td>'+esc(iso(t.entryTime))+'</td><td>'+esc(iso(t.exitTime))+'</td><td>'+(t.side===1?'LONG':'SHORT')+'</td><td>$'+num(t.entry)+'</td><td>$'+num(t.exit)+'</td><td class="'+(t.ret>=0?'ok':'bad')+'">'+num(t.ret*100)+'%</td><td>'+esc(t.reason)+'</td></tr>').join('')||'<tr><td colspan="7">Aucun signal suivant les règles du prototype.</td></tr>';
+ $('backtestStatus').textContent='Test terminé sur '+b.length+' bougies de la source « '+source+' ». Net = rendement composé après frais et slippage configurés, sans levier ni financement. Prototype non validé, pas de données futures utilisées pour l’entrée; tester sur plusieurs périodes avant toute conclusion.';
+ auditRow('Dernier backtest',new Date().toISOString());auditRow('Backtest source',source);auditRow('Trades',trades.length);auditRow('Frais round-trip %',fee*200);auditRow('Slippage round-trip %',slip*200);auditRow('Net composé %',net);
+}
+$('realBtn').onclick=loadReal;$('refreshBtn').onclick=loadReal;$('simBtn').onclick=simulate;$('compareBtn').onclick=compare;$('backtestBtn').onclick=backtest;
+$('overall').textContent='MODE TEST — ORDRES DÉSACTIVÉS';simulate();
+</script></body></html>
