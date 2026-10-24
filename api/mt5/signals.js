@@ -15,7 +15,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const response = await fetch(base.replace(/\\/+$/, "") + "/signals", {
+    const response = await fetch(base.replace(/\/+$/, "") + "/signals", {
       headers: { Authorization: "Bearer " + token },
       signal: AbortSignal.timeout(12000),
       cache: "no-store"
