@@ -1,111 +1,125 @@
 <!doctype html>
 <html lang="fr">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#090b0f">
-<title>FORTERESS QUANT LAB — Trading Terminal</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080d18"><title>FORTERESS QUANT LAB — React</title>
 <style>
-:root{color-scheme:dark;--bg:#090b0f;--panel:#10141b;--panel2:#141a23;--line:#252d38;--muted:#8a95a5;--text:#f2f5f8;--lime:#c8ff3d;--red:#ff657a;--amber:#e7bf70;--blue:#77a9ff}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:13px Manrope,system-ui,sans-serif}button,select,input{font:inherit}button,select{cursor:pointer}button{border:1px solid var(--line);background:#171e28;color:var(--text);border-radius:7px;padding:10px 13px;font-weight:700}button:hover{border-color:#667486}button:disabled{opacity:.55;cursor:wait}.app{min-height:100vh;display:grid;grid-template-columns:220px minmax(0,1fr)}aside{border-right:1px solid var(--line);background:#0c0f14;padding:24px 15px;display:flex;flex-direction:column;gap:26px}.brand{display:flex;gap:11px;align-items:center;padding:0 6px}.logo{width:38px;height:38px;border:1px solid #c8ff3d66;color:var(--lime);display:grid;place-items:center;border-radius:10px;font-weight:900;font-size:20px;background:#c8ff3d0a}.brand strong{display:block;font-size:12px;letter-spacing:1px}.brand small{display:block;color:var(--muted);font-size:9px;letter-spacing:1.5px;margin-top:4px}.navlabel{font:10px 'DM Mono',monospace;color:#647081;letter-spacing:1.7px;padding:0 11px;margin-bottom:8px}.navitem{padding:11px;border-radius:7px;color:#aab4c2;margin:3px 0;display:flex;gap:10px;align-items:center;font-size:12px}.navitem.active{background:#c8ff3d12;color:var(--lime);border:1px solid #c8ff3d20}.navitem span:first-child{width:17px;text-align:center}.asidebottom{margin-top:auto;border:1px solid var(--line);border-radius:9px;padding:12px;font-size:10px;color:var(--muted);line-height:1.8}.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--lime);margin-right:7px;box-shadow:0 0 10px #c8ff3d55}main{min-width:0}.topbar{height:72px;padding:0 30px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:15px}.crumb{color:var(--muted);font-size:11px}.topright{display:flex;align-items:center;gap:12px}.statuspill{border:1px solid var(--line);border-radius:5px;padding:8px 10px;font:10px 'DM Mono',monospace;color:var(--amber)}.content{max-width:1600px;margin:auto;padding:28px 30px 42px}.pagehead{display:flex;justify-content:space-between;align-items:end;gap:15px;flex-wrap:wrap;margin-bottom:22px}.eyebrow{font:10px 'DM Mono',monospace;color:var(--lime);letter-spacing:2px}.pagehead h1{font-size:28px;letter-spacing:-1px;margin:7px 0}.pagehead p{color:var(--muted);margin:0;font-size:12px}.actions{display:flex;gap:8px;align-items:center}.primary{background:var(--lime);color:#11160a;border-color:var(--lime)}.primary:hover{background:#d9ff7b}.notice{border:1px solid var(--line);background:#10151d;border-radius:7px;padding:11px 14px;margin-bottom:15px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;color:#aab4c2;font:11px 'DM Mono',monospace}.notice.ok{border-color:#c8ff3d30}.notice.bad{border-color:#ff657a55;color:#ff9aa8}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}.metric,.panel{background:linear-gradient(145deg,#121720,#0f1319);border:1px solid var(--line);border-radius:10px;min-width:0}.metric{padding:17px 18px;position:relative;overflow:hidden}.metric:before{content:"";height:2px;position:absolute;top:0;left:18px;right:18px;background:linear-gradient(90deg,#c8ff3d55,transparent)}.label{font:10px 'DM Mono',monospace;color:var(--muted);letter-spacing:1px;text-transform:uppercase}.value{font:500 clamp(20px,2vw,27px) 'DM Mono',monospace;letter-spacing:-1px;margin:14px 0 7px;overflow-wrap:anywhere}.hint{font-size:10px;color:var(--muted)}.positive{color:var(--lime)!important}.negative{color:var(--red)!important}.amber{color:var(--amber)!important}.layout{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(300px,1fr);gap:14px;margin-bottom:14px}.panel{padding:18px}.panelhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:17px}.panelhead h2{font-size:12px;margin:0;font-weight:800}.sub{font-size:10px;color:var(--muted);margin-top:5px}.select{background:#0c1118;border:1px solid var(--line);color:var(--text);padding:8px;border-radius:6px}.quotehero{display:flex;align-items:end;justify-content:space-between;gap:12px;margin-bottom:15px}.price{font:500 clamp(24px,3vw,36px) 'DM Mono',monospace;letter-spacing:-1.5px}.quoteunit{font-size:10px;color:var(--muted);margin-bottom:5px}.chartbox{height:270px;position:relative;border:1px solid #202834;border-radius:7px;overflow:hidden;background:repeating-linear-gradient(to bottom,transparent 0,transparent 53px,#202834 54px),repeating-linear-gradient(to right,transparent 0,transparent 75px,#202834 76px)}.chartbox svg{width:100%;height:100%;display:block}.chartlegend{display:flex;gap:15px;flex-wrap:wrap;margin-top:12px;color:var(--muted);font-size:10px}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px}.chartfoot{display:flex;justify-content:space-between;gap:8px;margin-top:12px;color:var(--muted);font:10px 'DM Mono',monospace}.quotegrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.quoteitem{padding:13px;background:#0b0f15;border:1px solid #222b36;border-radius:7px}.quoteitem span{display:block;color:var(--muted);font-size:10px;margin-bottom:8px}.quoteitem strong{font:500 13px 'DM Mono',monospace;overflow-wrap:anywhere}.tag{font:10px 'DM Mono',monospace;border:1px solid var(--line);padding:6px 8px;border-radius:5px;color:var(--muted)}.signalbox{padding:14px;background:#0b1016;border:1px solid var(--line);border-radius:8px;margin-bottom:12px}.signalrow{display:flex;justify-content:space-between;gap:10px;align-items:center}.signalvalue{font-size:18px;font-weight:800;margin-top:7px}.details{display:grid;grid-template-columns:1fr 1fr;gap:8px}.detail{padding:12px;background:#0b0f15;border:1px solid #202834;border-radius:7px;min-width:0}.detail span{display:block;color:var(--muted);font-size:10px;margin-bottom:7px}.detail strong{font:500 11px 'DM Mono',monospace;overflow-wrap:anywhere}.tablewrap{overflow:auto}table{width:100%;border-collapse:collapse;white-space:nowrap}th,td{text-align:left;padding:12px 9px;border-bottom:1px solid #222a35;font-size:11px}th{font:10px 'DM Mono',monospace;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;font-weight:400}td{font-family:'DM Mono',monospace;color:#dce3ec}tbody tr:hover{background:#ffffff04}.empty{padding:22px;text-align:center;color:var(--muted);font-size:11px}.errors{font-size:11px;color:#ff9aa8;line-height:1.8;padding-left:18px}.foot{border-top:1px solid var(--line);padding-top:17px;color:#697586;font-size:10px;line-height:1.8}.foot strong{color:#a6b0be}@media(max-width:1050px){.app{grid-template-columns:68px minmax(0,1fr)}aside{padding:20px 9px}.brand{justify-content:center;padding:0}.brandtext,.navlabel,.navitem .navtext,.asidebottom{display:none}.navitem{justify-content:center;padding:13px 4px}.navitem span:first-child{font-size:16px}.layout{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.app{display:block}aside{display:none}.topbar{height:58px;padding:0 15px}.content{padding:20px 12px 28px}.pagehead h1{font-size:24px}.metrics{gap:8px}.metric{padding:13px;min-height:110px}.value{font-size:19px}.hint{line-height:1.5}.panel{padding:13px}.chartbox{height:225px}.layout{gap:9px;margin-bottom:9px}.quotegrid{gap:7px}.details{grid-template-columns:1fr 1fr}.actions button{padding:9px;font-size:10px}.statuspill{font-size:9px}.notice{font-size:10px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
-</style></head>
-<body>
-<div class="app">
-<aside>
- <div class="brand"><div class="logo">F</div><div class="brandtext"><strong>FORTERESS</strong><small>QUANT LAB</small></div></div>
- <div><div class="navlabel">WORKSPACE</div><div class="navitem active"><span>▦</span><span class="navtext">Vue d'ensemble</span></div><div class="navitem"><span>⌁</span><span class="navtext">Marchés & cotations</span></div><div class="navitem"><span>▤</span><span class="navtext">Positions MT5</span></div><div class="navitem"><span>◷</span><span class="navtext">Historique</span></div></div>
- <div><div class="navlabel">SYSTÈME</div><div class="navitem"><span>⌘</span><span class="navtext">Diagnostic API</span></div></div>
- <div class="asidebottom"><span class="live-dot"></span>MODE LECTURE SEULE<br>Pas d'exécution d'ordres depuis cette interface.<br><br>Auto-refresh · 15 s</div>
-</aside>
-<main>
- <div class="topbar"><div class="crumb">Workspace <span style="color:#596575">/</span> Terminal</div><div class="topright"><span class="statuspill" id="connection">● CONNEXION À VÉRIFIER</span><button id="refresh" class="primary">↻ Actualiser</button></div></div>
- <div class="content">
-  <div class="pagehead"><div><div class="eyebrow">CONTROL CENTER / 01</div><h1>Trading terminal</h1><p>Vue du compte, données de marché et observabilité des flux MT5.</p></div><div class="actions"><span class="tag">PAPER / READ-ONLY UI</span></div></div>
-  <div id="notice" class="notice"><span id="status">Initialisation des flux de données…</span><span id="updated">Dernière vérification : —</span></div>
-  <section class="metrics">
-   <div class="metric"><div class="label">Solde du compte</div><div class="value" id="balance">—</div><div class="hint" id="accountHint">Compte MT5 · en attente</div></div>
-   <div class="metric"><div class="label">Équité</div><div class="value" id="equity">—</div><div class="hint">Solde + résultat flottant selon MT5</div></div>
-   <div class="metric"><div class="label">P&L flottant</div><div class="value" id="profit">—</div><div class="hint">Valeur fournie par le pont MT5</div></div>
-   <div class="metric"><div class="label">Positions ouvertes</div><div class="value" id="positionCount">—</div><div class="hint" id="positionHint">Lecture du portefeuille</div></div>
-  </section>
-  <div class="layout">
-   <section class="panel">
-    <div class="panelhead"><div><h2>MARKET OVERVIEW</h2><div class="sub">Bougies renvoyées par l'API MT5 · XAUUSD / M15</div></div><span class="tag" id="historyTag">CHARGEMENT</span></div>
-    <div class="quotehero"><div><div class="quoteunit">XAUUSD · Cours de marché</div><div class="price" id="mainPrice">—</div></div><div style="text-align:right"><div class="label">Spread</div><div id="spread" style="font:500 14px 'DM Mono',monospace;margin-top:8px">—</div></div></div>
-    <div class="chartbox" id="chart"><div class="empty">Chargement des bougies MT5…</div></div>
-    <div class="chartlegend"><span><i class="dot" style="background:#77a9ff"></i>Prix clôture</span><span><i class="dot" style="background:#c8ff3d"></i>SMA 8</span><span><i class="dot" style="background:#e7bf70"></i>SMA 21</span></div>
-    <div class="chartfoot"><span id="chartRange">Historique indisponible</span><span>Graphique calculé localement · pas de données simulées</span></div>
-   </section>
-   <section class="panel">
-    <div class="panelhead"><div><h2>MARKET SNAPSHOT</h2><div class="sub">Cotation la plus récente reçue du bridge</div></div><span class="tag" id="quoteTag">EN ATTENTE</span></div>
-    <div class="quotegrid">
-     <div class="quoteitem"><span>Bid</span><strong id="bid">—</strong></div><div class="quoteitem"><span>Ask</span><strong id="ask">—</strong></div>
-     <div class="quoteitem"><span>Symbole</span><strong id="symbol">XAUUSD</strong></div><div class="quoteitem"><span>Heure de cotation</span><strong id="quoteTime">—</strong></div>
-    </div>
-    <div style="height:16px"></div>
-    <div class="panelhead"><div><h2>COMPTE MT5</h2><div class="sub">Informations du compte réellement renvoyées par l'API</div></div><span class="tag" id="accountTag">NON CONFIRMÉ</span></div>
-    <div class="details">
-     <div class="detail"><span>Login</span><strong id="login">—</strong></div><div class="detail"><span>Serveur</span><strong id="server">—</strong></div>
-     <div class="detail"><span>Société</span><strong id="company">—</strong></div><div class="detail"><span>Devise</span><strong id="currency">—</strong></div>
-     <div class="detail"><span>Marge libre</span><strong id="margin">—</strong></div><div class="detail"><span>Nom du compte</span><strong id="accountName">—</strong></div>
-    </div>
-   </section>
-  </div>
-  <div class="layout">
-   <section class="panel"><div class="panelhead"><div><h2>POSITIONS OUVERTES</h2><div class="sub">Données de positions reçues du bridge MT5</div></div><span class="tag" id="openTag">—</span></div>
-    <div class="tablewrap"><table><thead><tr><th>Ticket</th><th>Symbole</th><th>Sens</th><th>Volume</th><th>Prix entrée</th><th>Prix actuel</th><th>P&L</th></tr></thead><tbody id="positions"><tr><td colspan="7" class="empty">Chargement…</td></tr></tbody></table></div>
-   </section>
-   <section class="panel"><div class="panelhead"><div><h2>SIGNAL TECHNIQUE</h2><div class="sub">Signal fourni par le service — non interprété comme garantie</div></div><span class="tag" id="signalTag">NON CONFIRMÉ</span></div>
-    <div class="signalbox"><div class="signalrow"><div><div class="label">Direction détectée</div><div class="signalvalue" id="signalDirection">EN ATTENTE</div></div><span class="tag" id="signalState">—</span></div><p id="signalReason" class="sub" style="line-height:1.7">En attente de réponse du service de signaux.</p></div>
-    <div class="details"><div class="detail"><span>Prix de référence</span><strong id="signalPrice">—</strong></div><div class="detail"><span>Dernière mise à jour</span><strong id="signalTime">—</strong></div></div>
-   </section>
-  </div>
-  <section class="panel" style="margin-bottom:14px"><div class="panelhead"><div><h2>HISTORIQUE RÉCENT</h2><div class="sub">Derniers deals renvoyés par le serveur MT5</div></div><span class="tag" id="dealsTag">—</span></div>
-   <div class="tablewrap"><table><thead><tr><th>Ticket</th><th>Date</th><th>Symbole</th><th>Type</th><th>Volume</th><th>Prix</th><th>Profit</th></tr></thead><tbody id="deals"><tr><td colspan="7" class="empty">Chargement…</td></tr></tbody></table></div>
-  </section>
-  <section class="panel" style="margin-bottom:18px"><div class="panelhead"><div><h2>DIAGNOSTIC DES FLUX</h2><div class="sub">État HTTP et erreurs explicites de chaque endpoint</div></div><span class="tag" id="diagnosticTag">VÉRIFICATION</span></div><div id="diagnostics" class="sub" style="line-height:2">Vérification en cours…</div></section>
-  <div class="foot"><strong>FORTERESS QUANT LAB</strong> · Interface de monitoring en lecture seule. Les valeurs sont affichées uniquement lorsqu'elles sont renvoyées par les API. L'absence d'une valeur ne signifie pas zéro. Le signal technique n'est pas un conseil financier. Aucun ordre n'est exécuté depuis cette page.</div>
- </div>
-</main>
-</div>
-<script>
-(function(){
-"use strict";
-const $=id=>document.getElementById(id);
-const state={account:null,positions:[],deals:[],quote:null,history:null,signal:null,errors:[],lastUpdate:null,loading:false};
-const fmtMoney=(v,c)=>{if(v===null||v===undefined||v===""||!Number.isFinite(Number(v)))return "—";try{return new Intl.NumberFormat("fr-BE",{style:"currency",currency:/^[A-Z]{3}$/.test(c||"")?c:"EUR",maximumFractionDigits:2}).format(Number(v))}catch{return Number(v).toFixed(2)}};
-const fmtNum=(v,d=2)=>v===null||v===undefined||v===""||!Number.isFinite(Number(v))?"—":Number(v).toLocaleString("fr-BE",{maximumFractionDigits:d});
-const safe=(v)=>v===null||v===undefined||v===""?"—":String(v);
-const pickArray=(j,keys)=>{for(const k of keys){if(Array.isArray(j?.[k]))return j[k]}if(Array.isArray(j?.data))return j.data;if(Array.isArray(j?.result))return j.result;return []};
-const dateFmt=v=>{if(!v)return "—";const d=typeof v==="number"?new Date(v<1e12?v*1000:v):new Date(v);return Number.isNaN(d.getTime())?String(v):d.toLocaleString("fr-BE",{hour12:false})};
-function setText(id,v){$(id).textContent=safe(v)}
-function getAccount(j){if(j?.account&&typeof j.account==="object")return j.account;if(j?.data?.account&&typeof j.data.account==="object")return j.data.account;if(j?.data&&typeof j.data==="object"&&!Array.isArray(j.data))return j.data;return j}
-async function fetchJson(path){const r=await fetch(path,{method:"GET",cache:"no-store",headers:{Accept:"application/json"}});let j;try{j=await r.json()}catch{throw new Error(path+" : réponse non JSON (HTTP "+r.status+")")}if(!r.ok||j?.ok===false)throw new Error(path+" : "+(j?.error||j?.message||("HTTP "+r.status)));return j}
-function setTone(id,v){$(id).classList.remove("positive","negative","amber");if(v!==null&&v!==undefined&&v!==""&&Number.isFinite(Number(v)))$(id).classList.add(Number(v)>=0?"positive":"negative")}
-function renderAccount(){const a=state.account||{},currency=a.currency||a.account_currency||"EUR";const connected=a.connected===true||a.is_connected===true;
-setText("balance",fmtMoney(a.balance,currency));setText("equity",fmtMoney(a.equity,currency));setText("profit",fmtMoney(a.profit??a.floating_profit,currency));setTone("profit",a.profit??a.floating_profit);setText("accountHint",a.login!=null?"Login "+a.login+" · "+(a.server||"serveur non précisé"):"Compte MT5 · statut non confirmé");setText("positionCount",state.positions.length);setText("positionHint",state.positions.length+" position(s) retournée(s)");setText("login",a.login);setText("server",a.server);setText("company",a.company);setText("currency",currency);setText("margin",fmtMoney(a.margin_free??a.free_margin,currency));setText("accountName",a.name||a.account_name);setText("accountTag",connected?"CONNECTÉ":"NON CONFIRMÉ");$("accountTag").className="tag "+(connected?"positive":"amber");$("connection").textContent=connected?"● MT5 CONNECTÉ":"● CONNEXION À CONFIRMER";$("connection").style.color=connected?"var(--lime)":"var(--amber)";setText("accountHint",connected?"Compte connecté · "+(a.server||"serveur non précisé"):"Statut de connexion non confirmé par l'API")}
-function renderQuote(){const raw=state.quote||{},q=raw.quote||raw.data||raw;const bid=Number(q.bid),ask=Number(q.ask);setText("bid",fmtNum(q.bid,5));setText("ask",fmtNum(q.ask,5));setText("symbol",q.symbol||"XAUUSD");setText("mainPrice",q.mid!=null?fmtNum(q.mid,5):Number.isFinite(bid)&&Number.isFinite(ask)?fmtNum((bid+ask)/2,5):fmtNum(q.last??q.price,5));setText("spread",q.spread!=null?fmtNum(q.spread,5):Number.isFinite(bid)&&Number.isFinite(ask)?fmtNum(ask-bid,5):"—");setText("quoteTime",dateFmt(q.observed_at||q.time||q.timestamp||q.time_msc));setText("quoteTag",state.quote?"DONNÉES REÇUES":"NON DISPONIBLE");setText("quoteTime",dateFmt(q.observed_at||q.time||q.timestamp||q.time_msc))}
-function renderPositions(){const arr=state.positions;setText("openTag",arr.length+" ACTIVE");$("positions").innerHTML=arr.length?arr.slice(0,30).map(p=>{const profit=p.profit??p.pnl??p.profit_current;const currency=state.account?.currency||"EUR";return "<tr><td>"+safe(p.ticket??p.position_id??p.identifier)+"</td><td>"+safe(p.symbol)+"</td><td>"+safe(p.type||p.side||p.direction)+"</td><td>"+safe(p.volume??p.lots??p.quantity)+"</td><td>"+safe(p.price_open??p.open_price??p.price)+"</td><td>"+safe(p.price_current??p.current_price??p.price_close)+"</td><td class='"+(Number(profit)>=0?"positive":"negative")+"'>"+fmtMoney(profit,currency)+"</td></tr>"}).join(""):'<tr><td colspan="7" class="empty">Aucune position retournée par le bridge.</td></tr>'}
-function renderDeals(){const arr=state.deals;setText("dealsTag",arr.length+" DEAL(S)");$("deals").innerHTML=arr.length?arr.slice(0,20).map(d=>{const p=d.profit??d.pnl;return "<tr><td>"+safe(d.ticket??d.deal??d.deal_ticket)+"</td><td>"+safe(dateFmt(d.time||d.timestamp||d.date||d.time_msc))+"</td><td>"+safe(d.symbol)+"</td><td>"+safe(d.type||d.side||d.entry)+"</td><td>"+safe(d.volume??d.lots)+"</td><td>"+safe(d.price??d.price_open)+"</td><td class='"+(Number(p)>=0?"positive":"negative")+"'>"+fmtMoney(p,state.account?.currency||"EUR")+"</td></tr>"}).join(""):'<tr><td colspan="7" class="empty">Aucun deal renvoyé ou historique vide.</td></tr>'}
-function renderSignal(){const raw=state.signal||{},s=raw.signal||raw.data||raw;const dir=s.direction||s.side||s.signal_direction||s.signal;setText("signalDirection",typeof dir==="string"?dir.toUpperCase():"NON CONFIRMÉ");setText("signalState",s.status||s.state||"Données reçues");setText("signalTag",state.signal?"API RÉPOND":"INDISPONIBLE");setText("signalReason",s.reason||s.message||s.description||"Le service n'a pas fourni de justification textuelle.");setText("signalPrice",fmtNum(s.price??s.entry??s.reference_price,5));setText("signalTime",dateFmt(s.observed_at||s.timestamp||s.time||s.updated_at))}
-function sma(values,period){return values.map((_,i)=>{if(i+1<period)return null;const a=values.slice(i+1-period,i+1);return a.reduce((x,y)=>x+y,0)/period})}
-function renderChart(){const root=$("chart"),j=state.history||{};const bars=Array.isArray(j.bars)?j.bars:Array.isArray(j.data?.bars)?j.data.bars:[];setText("historyTag",bars.length?bars.length+" BOUGIES":"PAS DE DONNÉES");setText("chartRange",bars.length?dateFmt(bars[0].time||bars[0].timestamp||bars[0].date)+" → "+dateFmt(bars[bars.length-1].time||bars[bars.length-1].timestamp||bars[bars.length-1].date):"Historique indisponible");if(!bars.length){root.innerHTML='<div class="empty">Aucune bougie exploitable reçue de /api/mt5/history. Vérifie le pont MT5 et le format de ses bougies.</div>';return}
-const closes=bars.map(b=>Number(b.close??b.c??b.price));if(closes.some(v=>!Number.isFinite(v))){root.innerHTML='<div class="empty">Format des bougies inattendu : champ close absent ou non numérique.</div>';return}
-const n=Math.min(100,bars.length),vals=closes.slice(-n),s8=sma(vals,8),s21=sma(vals,21),all=vals.concat(s8.filter(Number.isFinite),s21.filter(Number.isFinite)),lo=Math.min(...all),hi=Math.max(...all),range=hi-lo||1,W=900,H=280,pad={l:12,r:66,t:16,b:25},x=i=>pad.l+i*(W-pad.l-pad.r)/Math.max(1,n-1),y=v=>pad.t+(hi-v)/range*(H-pad.t-pad.b);
-const path=arr=>arr.map((v,i)=>(i?"L":"M")+x(i).toFixed(2)+","+y(v).toFixed(2)).join(" ");
-const line=(d,c,w,dash)=>d?'<path d="'+d+'" fill="none" stroke="'+c+'" stroke-width="'+w+'" '+(dash?'stroke-dasharray="'+dash+'"':'')+' vector-effect="non-scaling-stroke"/>':"";
-const area="M"+x(0)+","+y(vals[0])+" "+vals.map((v,i)=>"L"+x(i)+","+y(v)).join(" ")+" L"+x(n-1)+","+(H-pad.b)+" L"+x(0)+","+(H-pad.b)+" Z";
-let grid="";for(let i=0;i<5;i++){const yy=pad.t+i*(H-pad.t-pad.b)/4;grid+='<line x1="'+pad.l+'" y1="'+yy+'" x2="'+(W-pad.r)+'" y2="'+yy+'" stroke="#28313d" stroke-dasharray="3 5"/><text x="'+(W-pad.r+8)+'" y="'+(yy+4)+'" fill="#8a95a5" font-size="11" font-family="DM Mono,monospace">'+(hi-i*range/4).toFixed(2)+'</text>'}
-const last=vals[vals.length-1];root.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Graphique des clôtures MT5 avec moyennes mobiles"><defs><linearGradient id="pricefill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#77a9ff" stop-opacity=".22"/><stop offset="100%" stop-color="#77a9ff" stop-opacity="0"/></linearGradient></defs>'+grid+'<path d="'+area+'" fill="url(#pricefill)"/>'+line(path(vals),"#77a9ff",2)+line(path(s8.map(v=>v??NaN)),"#c8ff3d",1.4)+line(path(s21.map(v=>v??NaN)),"#e7bf70",1.4)+'<line x1="'+pad.l+'" y1="'+y(last)+'" x2="'+(W-pad.r)+'" y2="'+y(last)+'" stroke="#77a9ff" stroke-dasharray="4 4"/><circle cx="'+x(n-1)+'" cy="'+y(last)+'" r="3.5" fill="#77a9ff"/></svg>';setText("historyTag",bars.length+" BOUGIES · "+(j.timeframe||"M15"))}
-function renderDiagnostics(){const entries=[["Compte","/api/mt5/accounts"],["Positions","/api/mt5/positions"],["Deals","/api/mt5/deals"],["Cotation","/api/mt5/quote?symbol=XAUUSD"],["Historique","/api/mt5/history?count=100"],["Signaux","/api/mt5/signals"]];$("diagnostics").innerHTML=entries.map(([label,path])=>{const err=state.errors.find(e=>e.startsWith(path));return '<div><span style="color:'+(err?'var(--red)':'var(--lime)')+'">●</span> '+label+' <span style="color:var(--muted)">— '+(err?err.replace(/&/g,"&amp;").replace(/</g,"&lt;"):"réponse reçue")+'</span></div>'}).join("");setText("diagnosticTag",state.errors.length?state.errors.length+" ERREUR(S)":"FLUX VÉRIFIÉS");$("diagnosticTag").className="tag "+(state.errors.length?"negative":"positive")}
-function render(){renderAccount();renderQuote();renderPositions();renderDeals();renderSignal();renderChart();renderDiagnostics();const bad=state.errors.length>0;$("notice").className="notice "+(bad?"bad":"ok");setText("status",bad?state.errors.length+" endpoint(s) en erreur ou réponse invalide":"Requêtes terminées — contrôler le statut du compte et la fraîcheur des données");setText("updated",state.lastUpdate?"Dernière vérification : "+state.lastUpdate.toLocaleTimeString("fr-BE"):"Dernière vérification : —")}
-async function refresh(){if(state.loading)return;state.loading=true;$("refresh").disabled=true;$("refresh").textContent="Actualisation…";const tasks=[
-["/api/mt5/accounts",async j=>{state.account=getAccount(j)}],
-["/api/mt5/positions",async j=>{state.positions=pickArray(j,["positions","open_positions"])}],
-["/api/mt5/deals",async j=>{state.deals=pickArray(j,["deals","history"])}],
-["/api/mt5/quote?symbol=XAUUSD",async j=>{state.quote=j}],
-["/api/mt5/history?count=100",async j=>{state.history=j}],
-["/api/mt5/signals",async j=>{state.signal=j}]
-];const errors=[];await Promise.all(tasks.map(async([path,apply])=>{try{const j=await fetchJson(path);await apply(j)}catch(e){errors.push(path+" : "+e.message)}}));state.errors=errors;state.lastUpdate=new Date();state.loading=false;$("refresh").disabled=false;$("refresh").textContent="↻ Actualiser";render()}
-$("refresh").addEventListener("click",refresh);render();refresh();window.setInterval(refresh,15000);
-})();
-</script>
-</body></html>
+:root{color-scheme:dark;--bg:#080d18;--panel:#101827;--line:#233149;--muted:#92a0b7;--text:#edf3ff;--green:#4adea2;--red:#ff7385;--gold:#f2c66d}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#162744 0,transparent 38%),var(--bg);color:var(--text);font:14px Inter,ui-sans-serif,system-ui,sans-serif}
+header{padding:20px clamp(16px,4vw,42px);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}.logo{width:40px;height:40px;border:1px solid var(--gold);border-radius:12px;display:grid;place-items:center;color:var(--gold);font-weight:900;font-size:20px}.eyebrow{color:var(--gold);font-size:10px;letter-spacing:2px;font-weight:800}h1{font-size:17px;letter-spacing:1px;margin:3px 0}.sub,.muted{color:var(--muted);font-size:12px}.pill{border:1px solid #285d4e;color:var(--green);border-radius:30px;padding:8px 12px;font-size:11px}
+main{max-width:1320px;margin:auto;padding:24px clamp(14px,3vw,32px) 48px}.heading{display:flex;justify-content:space-between;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:20px}.heading h2{font-size:25px;margin:5px 0}.heading p{color:var(--muted);margin:0}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(300px,1fr);gap:12px;margin-top:12px}.panel,.metric{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;min-width:0}.metric .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px}.metric .value{font-size:23px;font-weight:750;margin-top:10px;overflow-wrap:anywhere}.metric .hint{font-size:11px;color:var(--muted);margin-top:6px}
+.panel h3{font-size:14px;margin:0 0 14px}.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.detail{background:#0b1220;border:1px solid var(--line);border-radius:9px;padding:11px;min-width:0;overflow-wrap:anywhere}.detail span{display:block;color:var(--muted);font-size:11px;margin-bottom:6px}.detail strong{font-size:13px}
+button,a{font:inherit}button{cursor:pointer;background:#111d2f;color:var(--text);border:1px solid var(--line);border-radius:9px;padding:9px 12px}button:hover{border-color:#7184a5}button:disabled{opacity:.6;cursor:wait}.positive{color:var(--green)}.negative{color:var(--red)}.warning{color:var(--gold)}.status{padding:10px 12px;border-radius:9px;background:#0b1220;border:1px solid var(--line);margin-bottom:12px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;font-size:12px}th,td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}th{color:var(--muted);font-weight:600}.footer{color:var(--muted);font-size:11px;margin-top:18px;line-height:1.6}
+@media(max-width:900px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}}@media(max-width:520px){.grid{grid-template-columns:1fr}.details{grid-template-columns:1fr}.metric .value{font-size:20px}}
+</style>
+</head>
+<body><div id="root"><main><p class="muted">Chargement de FORTERESS QUANT LAB…</p></main></div>
+<script type="module">
+import React,{useCallback,useEffect,useState} from "https://esm.sh/react@18.3.1";
+import{createRoot}from"https://esm.sh/react-dom@18.3.1/client";
+const h=React.createElement;
+const money=(v,c="EUR")=>Number.isFinite(Number(v))?new Intl.NumberFormat("fr-BE",{style:"currency",currency:/^[A-Z]{3}$/.test(c||"")?c:"EUR",maximumFractionDigits:2}).format(Number(v)):"—";
+const val=(v)=>v===null||v===undefined||v===""?"—":String(v);
+function Metric({label,value,hint,tone}){return h("section",{className:"metric"},h("div",{className:"label"},label),h("div",{className:"value "+(tone||"")},value),hint?h("div",{className:"hint"},hint):null)}
+function Detail({label,value}){return h("div",{className:"detail"},h("span",null,label),h("strong",null,val(value)))}
+function Panel({title,children,action}){return h("section",{className:"panel"},h("div",{className:"row",style:{marginBottom:14}},h("h3",{style:{margin:0}},title),action||null),children)}
+
+function BTCAnalysis(){
+ const [market,setMarket]=useState(null),[error,setError]=useState("Chargement du flux BTCUSD…"),[updated,setUpdated]=useState(null),[busy,setBusy]=useState(false);
+ const load=useCallback(async()=>{if(busy)return;setBusy(true);try{const r=await fetch("/api/market/btc?ts="+Date.now(),{cache:"no-store",headers:{Accept:"application/json"}});const j=await r.json();if(!r.ok||!j.ok||j.status!=="live")throw new Error(j.error||"Flux BTCUSD non confirmé");if(!Array.isArray(j.candles?.data)||j.candles.data.length<50)throw new Error("Historique OHLC insuffisant");const bars=j.candles.data;if(bars.some((b,i)=>![b.time,b.open,b.high,b.low,b.close,b.volume].every(Number.isFinite)||b.high<Math.max(b.open,b.close,b.low)||b.low>Math.min(b.open,b.close,b.high)||(i&&b.time<=bars[i-1].time)))throw new Error("Validation OHLC échouée");setMarket(j);setError("");setUpdated(new Date());}catch(e){setMarket(null);setError(e.message+" — scénarios bloqués");}finally{setBusy(false)}},[busy]);
+ useEffect(()=>{load();const id=setInterval(load,15000);return()=>clearInterval(id)},[]);
+ const fmt=(n,d=2)=>Number.isFinite(Number(n))?Number(n).toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}):"—";
+ const bars=market?.candles?.data||[], closes=bars.map(b=>b.close);
+ const avg=(arr,n)=>arr.length>=n?arr.slice(-n).reduce((a,b)=>a+b,0)/n:null;
+ const sma20=avg(closes,20),sma50=avg(closes,50);
+ const rsi=(()=>{if(closes.length<15)return null;let g=0,l=0;for(let i=closes.length-14;i<closes.length;i++){let d=closes[i]-closes[i-1];if(d>0)g+=d;else l-=d}return l===0?(g===0?50:100):100-100/(1+g/l)})();
+ const atr=(()=>{if(bars.length<15)return null;let a=[];for(let i=bars.length-14;i<bars.length;i++){let b=bars[i],p=bars[i-1].close;a.push(Math.max(b.high-b.low,Math.abs(b.high-p),Math.abs(b.low-p)))}return a.reduce((s,v)=>s+v,0)/a.length})();
+ const chart=(()=>{if(bars.length<2)return null;const data=bars.slice(-80),W=900,H=300,lo=Math.min(...data.map(b=>b.low)),hi=Math.max(...data.map(b=>b.high)),span=hi-lo||1,step=W/data.length,cw=Math.max(2,step*.58),x=i=>step*i+step/2,y=p=>H-16-(p-lo)/span*(H-32);let children=[];for(let k=0;k<5;k++){let yy=8+k*71,price=hi-k*span/4;children.push(h("line",{key:"g"+k,x1:0,y1:yy,x2:W,y2:yy,stroke:"#233149"}),h("text",{key:"t"+k,x:W-4,y:yy-3,fill:"#92a0b7",fontSize:10,textAnchor:"end"},fmt(price)))}data.forEach((b,i)=>{let up=b.close>=b.open,c=up?"#4adea2":"#ff7385";children.push(h("line",{key:"w"+i,x1:x(i),y1:y(b.high),x2:x(i),y2:y(b.low),stroke:c}),h("rect",{key:"b"+i,x:x(i)-cw/2,y:Math.min(y(b.open),y(b.close)),width:cw,height:Math.max(1,Math.abs(y(b.open)-y(b.close))),fill:c}))});[[20,"#f2c66d"],[50,"#b48aff"]].forEach(([n,c])=>{let pts=[];for(let i=n-1;i<data.length;i++){pts.push(x(i)+","+y(avg(data.slice(i-n+1,i+1).map(b=>b.close),n)))}if(pts.length)children.push(h("polyline",{key:"s"+n,points:pts.join(" "),fill:"none",stroke:c,strokeWidth:1.5}))});return h("svg",{viewBox:"0 0 900 300",style:{width:"100%",height:"300px",display:"block"},role:"img","aria-label":"Bougies BTCUSD OHLC provenant de Coinbase"},children)})();
+ const fresh=market?.status==="live"&&Number.isFinite(market.quoteAgeSeconds)&&market.quoteAgeSeconds<=120&&market.quoteAgeSeconds>=0&&Number.isFinite(market.candles?.ageSeconds)&&market.candles.ageSeconds<=3600;
+ const recent=bars.slice(-20),support=recent.length?Math.min(...recent.map(b=>b.low)):null,resistance=recent.length?Math.max(...recent.map(b=>b.high)):null,entry=market?.price,dist=Math.max(atr||0,(market?.spread||0)*3,(entry||0)*.001);
+ const long= fresh&&sma20!==null&&sma50!==null&&atr!==null&&sma20>sma50&&market.price>support;
+ const short= fresh&&sma20!==null&&sma50!==null&&atr!==null&&sma20<sma50&&market.price<resistance;
+ return h("section",{className:"panel",style:{marginBottom:14}},h("div",{className:"row",style:{marginBottom:12}},h("div",null,h("div",{className:"eyebrow"},"BTCUSD / DONNÉES PUBLIQUES RÉELLES"),h("h3",{style:{margin:"5px 0"}},"Analyse BTCUSD · OHLC + indicateurs"),h("div",{className:"muted"},market?"Source : "+market.source+" · cotation "+new Date(market.quoteTime).toLocaleTimeString("fr-BE"):"Source non validée")),h("button",{onClick:load,disabled:busy},busy?"Actualisation…":"↻ Actualiser")),
+ h("div",{className:"status "+(fresh?"positive":"warning")},error||("Flux live vérifié · âge cotation "+market.quoteAgeSeconds+" s · dernière mise à jour "+(updated?updated.toLocaleTimeString("fr-BE"):"—"))),
+ market?h(React.Fragment,null,
+ h("div",{className:"grid"},h(Metric,{label:"BTCUSD dernier prix",value:fmt(market.price),hint:"Coinbase BTC-USD"}),h(Metric,{label:"Bid / Ask",value:fmt(market.bid)+" / "+fmt(market.ask),hint:"Spread "+fmt(market.spread)}),h(Metric,{label:"Tendance SMA20 / SMA50",value:sma20>sma50?"HAUSSIÈRE":sma20<sma50?"BAISSIÈRE":"NEUTRE",tone:sma20>sma50?"positive":sma20<sma50?"negative":"",hint:"SMA20 "+fmt(sma20)+" · SMA50 "+fmt(sma50)}),h(Metric,{label:"RSI 14 / ATR 14",value:fmt(rsi,1)+" / "+fmt(atr),hint:rsi>=70?"RSI en zone haute":rsi<=30?"RSI en zone basse":"RSI intermédiaire"})),
+ h("div",{style:{marginTop:12,border:"1px solid var(--line)",borderRadius:10,overflow:"hidden"}},chart),
+ h("div",{className:"muted",style:{marginTop:8}},"Bougies OHLC réelles BTC-USD · unité 15 minutes · SMA20 (or), SMA50 (violet) · "+bars.length+" bougies retournées."),
+ h("div",{className:"layout"},h("div",{className:"detail"},h("strong",null,"Scénario papier haussier"),h("p",{className:long?"positive":"muted"},long?"Contexte haussier à surveiller, pas une entrée confirmée.":"Pas de confirmation haussière suffisante."),h("div",{className:"muted"},"Support récent "+fmt(support)+" · résistance "+fmt(resistance)),h("div",{className:"muted"},"Référence "+fmt(entry)+" · invalidation indicative "+fmt(entry-dist)+" · cible indicative "+fmt(Math.max(resistance,entry+2*dist)))),
+ h("div",{className:"detail"},h("strong",null,"Scénario papier baissier"),h("p",{className:short?"negative":"muted"},short?"Contexte baissier à surveiller, pas une entrée confirmée.":"Pas de confirmation baissière suffisante."),h("div",{className:"muted"},"Support récent "+fmt(support)+" · résistance "+fmt(resistance)),h("div",{className:"muted"},"Référence "+fmt(entry)+" · invalidation indicative "+fmt(entry+dist)+" · cible indicative "+fmt(Math.min(support,entry-2*dist))))),
+ h("p",{className:"footer"},"Ces niveaux sont des scénarios de recherche, pas des prédictions ni des ordres. Source BTC-USD Coinbase Exchange, indépendante du flux MT5. Aucune exécution d’ordre."),
+ ):h("div",{className:"warning"},"Données BTCUSD réelles indisponibles ou périmées. Le graphique et les scénarios restent masqués. Détail : "+error));
+}
+
+function App(){
+ const [account,setAccount]=useState(null),[positions,setPositions]=useState([]),[deals,setDeals]=useState([]),[quote,setQuote]=useState(null),[history,setHistory]=useState(null),[signal,setSignal]=useState(null);
+ const [status,setStatus]=useState("Connexion aux endpoints MT5…"),[lastUpdate,setLastUpdate]=useState(null),[loading,setLoading]=useState(false),[errors,setErrors]=useState([]);
+ const get=useCallback(async(path)=>{const r=await fetch(path,{cache:"no-store",headers:{Accept:"application/json"}});const j=await r.json();if(!r.ok)throw new Error(j.error||path+" — HTTP "+r.status);return j;},[]);
+ const refresh=useCallback(async()=>{
+  setLoading(true);const nextErrors=[];
+  const tasks=[
+   ["/api/mt5/accounts",j=>setAccount(j.account||j.data?.account||j)],
+   ["/api/mt5/positions",j=>setPositions(Array.isArray(j.positions)?j.positions:Array.isArray(j.data)?j.data:[])],
+   ["/api/mt5/deals",j=>setDeals(Array.isArray(j.deals)?j.deals:Array.isArray(j.data)?j.data:[])],
+   ["/api/mt5/quote?symbol=XAUUSD",j=>setQuote(j.quote||j.data||j)],
+   ["/api/mt5/history?symbol=XAUUSD&timeframe=M15&limit=100",j=>setHistory(j)],
+   ["/api/mt5/signals",j=>setSignal(j.signal||j.data||j)]
+  ];
+  await Promise.all(tasks.map(async([path,apply])=>{try{const j=await get(path);apply(j);if(j.ok===false)nextErrors.push(path+": "+(j.error||"réponse non valide"));}catch(e){nextErrors.push(path+": "+e.message);}}));
+  setErrors(nextErrors);setStatus(nextErrors.length?"Flux partiel — vérifier les détails ci-dessous":"Requêtes terminées — confirmer la connexion réelle MT5");setLastUpdate(new Date());setLoading(false);
+ },[get]);
+ useEffect(()=>{refresh();const id=setInterval(refresh,15000);return()=>clearInterval(id)},[refresh]);
+ const connected=Boolean(account?.connected);
+ const acct=account?.account||account;
+ const pos=Array.isArray(positions)?positions:[];
+ const ds=Array.isArray(deals)?deals:[];
+ const q=quote?.quote||quote;
+ const sig=signal?.signal||signal;
+ const rows=ds.slice(0,8);
+ return h(React.Fragment,null,
+  h("header",null,h("div",{className:"brand"},h("div",{className:"logo"},"F"),h("div",null,h("div",{className:"eyebrow"},"QUANTITATIVE TRADING LAB"),h("h1",null,"FORTERESS QUANT LAB"),h("div",{className:"sub"},"Dashboard React · lecture des données de marché et du compte"))),h("div",{className:"pill"},connected?"COMPTE DÉTECTÉ":"CONNEXION À CONFIRMER")),
+  h("main",null,
+   h("div",{className:"heading"},h("div",null,h("div",{className:"eyebrow"},"MT5 / OBSERVABILITÉ"),h("h2",null,"Vue d’ensemble"),h("p",null,"Données réelles uniquement si les endpoints les confirment. Pas d’ordre envoyé depuis cette page.")),h("button",{onClick:refresh,disabled:loading},loading?"Actualisation…":"↻ Actualiser")),
+   h(BTCAnalysis),
+   h("div",{className:"status "+(errors.length?"warning":"positive")},status," · ",lastUpdate?("Dernière vérification : "+lastUpdate.toLocaleTimeString("fr-BE")):"aucune vérification terminée"),
+   h("div",{className:"grid"},
+    h(Metric,{label:"Solde",value:money(acct?.balance,acct?.currency),hint:acct?.currency||"Devise inconnue"}),
+    h(Metric,{label:"Équité",value:money(acct?.equity,acct?.currency),hint:"Compte connecté"}),
+    h(Metric,{label:"P&L flottant",value:money(acct?.profit,acct?.currency),tone:Number(acct?.profit)>=0?"positive":"negative",hint:"Valeur renvoyée par MT5"}),
+    h(Metric,{label:"Positions ouvertes",value:pos.length,hint:"Lecture seule"})
+   ),
+   h("div",{className:"layout"},
+    h(Panel,{title:"Compte MetaTrader 5"},h("div",{className:"details"},
+     h(Detail,{label:"Statut",value:connected?"Connecté selon l’API":acct?.error||"Non confirmé"}),
+     h(Detail,{label:"Login",value:acct?.login}),
+     h(Detail,{label:"Serveur",value:acct?.server}),
+     h(Detail,{label:"Société",value:acct?.company}),
+     h(Detail,{label:"Devise",value:acct?.currency}),
+     h(Detail,{label:"Marge libre",value:money(acct?.margin_free,acct?.currency)}))),
+    h(Panel,{title:"Cotation XAUUSD"},h("div",{className:"details"},
+     h(Detail,{label:"Symbole",value:q?.symbol||"XAUUSD"}),
+     h(Detail,{label:"Bid",value:q?.bid}),
+     h(Detail,{label:"Ask",value:q?.ask}),
+     h(Detail,{label:"Spread",value:q?.spread}),
+     h(Detail,{label:"Heure observée",value:q?.observed_at||q?.time||q?.timestamp})))
+   ),
+   h("div",{className:"layout"},
+    h(Panel,{title:"Positions ouvertes",action:h("span",{className:"muted"},pos.length+" position(s)")},pos.length?h("div",{className:"table-wrap"},h("table",null,h("thead",null,h("tr",null,["Symbole","Type","Volume","Ouverture","P&L"].map(x=>h("th",{key:x},x)))),h("tbody",null,pos.slice(0,20).map((p,i)=>h("tr",{key:p.ticket||p.position_id||i},h("td",null,val(p.symbol)),h("td",null,val(p.type||p.side)),h("td",null,val(p.volume??p.lots)),h("td",null,val(p.price_open??p.open_price)),h("td",{className:Number(p.profit)>=0?"positive":"negative"},money(p.profit,acct?.currency))))))):h("p",{className:"muted"},"Aucune position renvoyée, ou endpoint indisponible.")),
+    h(Panel,{title:"Signal technique"},h("div",{className:"details"},
+     h(Detail,{label:"Direction",value:sig?.direction||sig?.signal||sig?.side}),
+     h(Detail,{label:"État",value:sig?.status||sig?.state||"Non confirmé"}),
+     h(Detail,{label:"Prix",value:sig?.price??sig?.entry}),
+     h(Detail,{label:"Motif",value:sig?.reason||sig?.message||"—"})))
+   ),
+   h("div",{className:"layout"},
+    h(Panel,{title:"Historique récent",action:h("span",{className:"muted"},rows.length+" ligne(s)")},rows.length?h("div",{className:"table-wrap"},h("table",null,h("thead",null,h("tr",null,["Ticket","Symbole","Type","Volume","Profit"].map(x=>h("th",{key:x},x)))),h("tbody",null,rows.map((d,i)=>h("tr",{key:d.ticket||d.deal||i},h("td",null,val(d.ticket||d.deal)),h("td",null,val(d.symbol)),h("td",null,val(d.type||d.side)),h("td",null,val(d.volume)),h("td",{className:Number(d.profit)>=0?"positive":"negative"},money(d.profit,acct?.currency))))))):h("p",{className:"muted"},"Aucun deal affiché ou format de réponse à adapter.")),
+    h(Panel,{title:"Diagnostic des flux"},errors.length?h("ul",null,errors.map((e,i)=>h("li",{key:i,className:"negative",style:{marginBottom:8}},e))):h("div",null,h("p",{className:"positive"},"Aucune erreur HTTP détectée au dernier rafraîchissement."),h("p",{className:"muted"},"Une réponse HTTP valide ne garantit pas à elle seule que les données proviennent d’un compte MT5 connecté."),h("div",{className:"details"},h(Detail,{label:"Historique",value:history?.ok===false?"Erreur signalée par API":history?.ok===true?"API OK":"Réponse reçue"}),h(Detail,{label:"Mise à jour auto",value:"15 secondes"}))))
+   ),
+   h("p",{className:"footer"},"Interface React expérimentale. Les endpoints existants sont conservés. Les ordres ne sont pas exécutés ici : cette version est en lecture seule. Si les noms de champs retournés par l’API diffèrent, les cartes peuvent afficher « — » sans signifier que MT5 est nécessairement hors ligne.")
+  )
+ );
+}
+createRoot(document.getElementById("root")).render(h(App));
+</script></body></html>
