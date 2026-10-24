@@ -1,4 +1,8 @@
+import requireSupabaseUser from "../_lib/require-supabase-user.js";
+
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store, max-age=0");
+  if (!(await requireSupabaseUser(req, res))) return;
   if (req.method !== "GET") {
     res.setHeader("Allow", "GET");
     return res.status(405).json({ ok: false, error: "Method not allowed" });

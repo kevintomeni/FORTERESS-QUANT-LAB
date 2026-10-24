@@ -1,8 +1,12 @@
+import requireSupabaseUser from "../_lib/require-supabase-user.js";
+
 function sendError(res, status, code, message, extra = {}) {
   return res.status(status).json({ ok: false, error: message, code, ...extra });
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "no-store, max-age=0");
+  if (!(await requireSupabaseUser(req, res))) return;
   res.setHeader("Cache-Control", "no-store, max-age=0");
   if (req.method !== "GET") { res.setHeader("Allow", "GET"); return sendError(res,405,"METHOD_NOT_ALLOWED","Méthode non autorisée"); }
   const base = process.env.MT5_BRIDGE_URL, token = process.env.MT5_BRIDGE_TOKEN;

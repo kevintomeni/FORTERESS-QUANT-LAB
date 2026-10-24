@@ -19,6 +19,7 @@ button,a{font:inherit}button{cursor:pointer;background:#111d2f;color:var(--text)
 <script type="module">
 import React,{useCallback,useEffect,useState} from "https://esm.sh/react@18.3.1";
 import{createRoot}from"https://esm.sh/react-dom@18.3.1/client";
+import{createClient}from"https://esm.sh/@supabase/supabase-js@2";
 const h=React.createElement;
 const money=(v,c="EUR")=>Number.isFinite(Number(v))?new Intl.NumberFormat("fr-BE",{style:"currency",currency:/^[A-Z]{3}$/.test(c||"")?c:"EUR",maximumFractionDigits:2}).format(Number(v)):"—";
 const val=(v)=>v===null||v===undefined||v===""?"—":String(v);
@@ -54,9 +55,24 @@ function BTCAnalysis(){
 }
 
 function App(){
+ const [supabase,setSupabase]=useState(null),[session,setSession]=useState(null),[authReady,setAuthReady]=useState(false);
+ const [email,setEmail]=useState(""),[password,setPassword]=useState(""),[authBusy,setAuthBusy]=useState(false),[authError,setAuthError]=useState("");
+ useEffect(()=>{let alive=true;let subscription;
+  (async()=>{try{const r=await fetch("/api/auth/config",{cache:"no-store"});const cfg=await r.json();if(!r.ok||!cfg.url||!cfg.publishableKey)throw new Error(cfg.error||"Configuration Supabase indisponible");
+   const client=createClient(cfg.url,cfg.publishableKey,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+   const current=await client.auth.getSession();if(!alive)return;setSupabase(client);setSession(current.data.session);
+   const authState=client.auth.onAuthStateChange((_event,next)=>{if(alive)setSession(next)});subscription=authState.data.subscription;
+  }catch(e){if(alive)setAuthError(e.message||"Impossible d’initialiser la connexion");}finally{if(alive)setAuthReady(true)}})();
+  return()=>{alive=false;subscription?.unsubscribe()};
+ },[]);
+ const signIn=useCallback(async(e)=>{e?.preventDefault?.();if(!supabase)return;setAuthBusy(true);setAuthError("");
+  try{const {error}=await supabase.auth.signInWithPassword({email:email.trim(),password});if(error)throw error;setPassword("");}
+  catch(err){setAuthError(err.message||"Connexion refusée");}finally{setAuthBusy(false)}
+ },[supabase,email,password]);
+ const signOut=useCallback(async()=>{if(supabase)await supabase.auth.signOut();setAccount(null);setPositions([]);setDeals([]);setQuote(null);setHistory(null);setSignal(null)},[supabase]);
  const [account,setAccount]=useState(null),[positions,setPositions]=useState([]),[deals,setDeals]=useState([]),[quote,setQuote]=useState(null),[history,setHistory]=useState(null),[signal,setSignal]=useState(null);
  const [status,setStatus]=useState("Connexion aux endpoints MT5…"),[lastUpdate,setLastUpdate]=useState(null),[loading,setLoading]=useState(false),[errors,setErrors]=useState([]);
- const get=useCallback(async(path)=>{const r=await fetch(path,{cache:"no-store",headers:{Accept:"application/json"}});const j=await r.json();if(!r.ok)throw new Error(j.error||path+" — HTTP "+r.status);return j;},[]);
+ const get=useCallback(async(path)=>{if(!session?.access_token)throw new Error("Session Supabase requise");const r=await fetch(path,{cache:"no-store",headers:{Accept:"application/json",Authorization:"Bearer "+session.access_token}});const j=await r.json();if(!r.ok)throw new Error(j.error||path+" — HTTP "+r.status);return j;},[session]);
  const refresh=useCallback(async()=>{
   setLoading(true);const nextErrors=[];
   const tasks=[
@@ -70,7 +86,7 @@ function App(){
   await Promise.all(tasks.map(async([path,apply])=>{try{const j=await get(path);apply(j);if(j.ok===false)nextErrors.push(path+": "+(j.error||"réponse non valide"));}catch(e){nextErrors.push(path+": "+e.message);}}));
   setErrors(nextErrors);setStatus(nextErrors.length?"Flux partiel — vérifier les détails ci-dessous":"Requêtes terminées — confirmer la connexion réelle MT5");setLastUpdate(new Date());setLoading(false);
  },[get]);
- useEffect(()=>{refresh();const id=setInterval(refresh,15000);return()=>clearInterval(id)},[refresh]);
+ useEffect(()=>{if(!session){setStatus("Connexion Supabase requise");return}refresh();const id=setInterval(refresh,15000);return()=>clearInterval(id)},[refresh,session]);
  const connected=Boolean(account?.connected);
  const acct=account?.account||account;
  const pos=Array.isArray(positions)?positions:[];
@@ -78,8 +94,10 @@ function App(){
  const q=quote?.quote||quote;
  const sig=signal?.signal||signal;
  const rows=ds.slice(0,8);
+ if(!authReady)return h("main",{style:{maxWidth:520,margin:"12vh auto",padding:24}},h("section",{className:"panel"},h("h2",null,"Initialisation sécurisée…"),h("p",{className:"muted"},"Vérification de la configuration Supabase.")));
+ if(!session)return h("main",{style:{maxWidth:460,margin:"10vh auto",padding:20}},h("section",{className:"panel"},h("div",{className:"brand",style:{marginBottom:24}},h("div",{className:"logo"},"F"),h("div",null,h("div",{className:"eyebrow"},"ACCÈS SÉCURISÉ"),h("h1",null,"FORTERESS QUANT LAB"),h("div",{className:"sub"},"Connexion requise avant toute lecture des données MT5"))),h("form",{onSubmit:signIn},h("label",{htmlFor:"auth-email",style:{display:"block",marginBottom:6}},"Adresse e-mail"),h("input",{id:"auth-email",type:"email",autoComplete:"username",required:true,value:email,onChange:e=>setEmail(e.target.value),style:{width:"100%",padding:12,marginBottom:14,background:"#0b1220",color:"var(--text)",border:"1px solid var(--line)",borderRadius:8}}),h("label",{htmlFor:"auth-password",style:{display:"block",marginBottom:6}},"Mot de passe Supabase"),h("input",{id:"auth-password",type:"password",autoComplete:"current-password",required:true,value:password,onChange:e=>setPassword(e.target.value),style:{width:"100%",padding:12,marginBottom:16,background:"#0b1220",color:"var(--text)",border:"1px solid var(--line)",borderRadius:8}}),h("button",{type:"submit",disabled:authBusy||!supabase,style:{width:"100%"}},authBusy?"Connexion…":"Se connecter")),authError?h("p",{className:"negative",role:"alert",style:{marginTop:14}},authError):null,h("p",{className:"footer"},"Utilise le compte créé dans Supabase Authentication. N’entre jamais ton mot de passe MT5 ici.")));
  return h(React.Fragment,null,
-  h("header",null,h("div",{className:"brand"},h("div",{className:"logo"},"F"),h("div",null,h("div",{className:"eyebrow"},"QUANTITATIVE TRADING LAB"),h("h1",null,"FORTERESS QUANT LAB"),h("div",{className:"sub"},"Dashboard React · lecture des données de marché et du compte"))),h("div",{className:"pill"},connected?"COMPTE DÉTECTÉ":"CONNEXION À CONFIRMER")),
+  h("header",null,h("div",{className:"brand"},h("div",{className:"logo"},"F"),h("div",null,h("div",{className:"eyebrow"},"QUANTITATIVE TRADING LAB"),h("h1",null,"FORTERESS QUANT LAB"),h("div",{className:"sub"},"Dashboard React · lecture des données de marché et du compte"))),h("div",{className:"row",style:{gap:8}},h("div",{className:"pill"},connected?"COMPTE DÉTECTÉ":"CONNEXION À CONFIRMER"),h("button",{onClick:signOut},"Déconnexion"))),
   h("main",null,
    h("div",{className:"heading"},h("div",null,h("div",{className:"eyebrow"},"MT5 / OBSERVABILITÉ"),h("h2",null,"Vue d’ensemble"),h("p",null,"Données réelles uniquement si les endpoints les confirment. Pas d’ordre envoyé depuis cette page.")),h("button",{onClick:refresh,disabled:loading},loading?"Actualisation…":"↻ Actualiser")),
    h(BTCAnalysis),
