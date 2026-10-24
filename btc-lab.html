@@ -41,16 +41,29 @@ function setBars(result){
  draw();analyze();
 }
 async function loadReal(){
- $('realBtn').disabled=true;setStatus('Récupération de Coinbase Exchange…');
+ $('realBtn').disabled=true; $('refreshBtn').disabled=true;
+ setStatus('Récupération du flux BTC/USD via l’API FORTERESS…');
  try{
- const url='https://api.exchange.coinbase.com/products/BTC-USD/candles?granularity=900';
- const r=await fetch(url,{headers:{'Accept':'application/json'},cache:'no-store'});if(!r.ok)throw Error('HTTP '+r.status+' depuis Coinbase');
- const data=await r.json();if(!Array.isArray(data))throw Error('Réponse non tabulaire');
- // Coinbase candle layout: [time, low, high, open, close, volume], newest-first.
- const raw=data.map(a=>({time:a[0],low:a[1],high:a[2],open:a[3],close:a[4],volume:a[5]})).sort((a,b)=>a.time-b.time);
- const result=validate(raw,'Coinbase public');setBars(result);auditRow('Endpoint','Coinbase Exchange public REST');auditRow('Type de flux','BTC-USD spot public, non Weltrade/MT5');auditRow('HTTP',r.status);
- }catch(e){setStatus('Flux réel non validé : '+e.message+'. Les données simulées ne seront pas présentées comme réelles.','bad');$('dataStatus').textContent='ÉCHEC';$('dataReason').textContent='Aucun remplacement automatique';auditRow('Erreur flux réel',e.message);$('overall').textContent='FLUX NON VALIDÉ';}
- finally{$('realBtn').disabled=false}
+  const r=await fetch('/api/market/btc',{headers:{'Accept':'application/json'},cache:'no-store'});
+  const data=await r.json();
+  if(!r.ok||!data.ok||data.status!=='live')throw Error(data.error||('HTTP '+r.status));
+  const result=validate(data.candles.data,'Coinbase public');
+  result.fresh=Number(data.quoteAgeSeconds)<=120&&Number(data.candles.ageSeconds)<=3600;
+  setBars(result);
+  $('lastPrice').textContent='$'+num(data.price);
+  $('lastCandle').textContent='Prix spot · '+new Date(data.quoteTime).toLocaleTimeString('fr-FR')+' · bid '+num(data.bid)+' / ask '+num(data.ask);
+  $('dataStatus').textContent=result.fresh?'LIVE':'ANCIEN';
+  $('dataReason').textContent='Cotation âgée de '+data.quoteAgeSeconds+' s · bougie '+data.candles.ageSeconds+' s';
+  $('overall').textContent='COINBASE · LIVE';
+  $('overall').className='tag '+(result.fresh?'ok':'warn');
+  setStatus('FLUX RÉEL VALIDÉ · Coinbase BTC-USD · prix spot $'+num(data.price)+' · '+data.candles.count+' bougies M15. Dernière vérification '+new Date().toLocaleTimeString('fr-FR'),result.fresh?'ok':'warn');
+  auditRow('API locale','/api/market/btc');auditRow('Endpoint source',data.source);auditRow('Prix spot BTC/USD','$'+num(data.price));auditRow('Bid / Ask',num(data.bid)+' / '+num(data.ask));auditRow('Spread USD',num(data.spread,4));auditRow('Âge cotation secondes',data.quoteAgeSeconds);auditRow('HTTP',r.status);
+ }catch(e){
+  setStatus('FLUX RÉEL INDISPONIBLE : '+e.message+'. Aucun remplacement par simulation.','bad');
+  $('dataStatus').textContent='ÉCHEC';$('dataReason').textContent='Pas de prix réel validé';
+  $('overall').textContent='FLUX NON VALIDÉ';$('overall').className='tag';
+  auditRow('Erreur flux réel',e.message);
+ }finally{$('realBtn').disabled=false;$('refreshBtn').disabled=false}
 }
 function simulate(){
  const now=Math.floor(Date.now()/1000/900)*900,raw=[];let p=65000;
@@ -138,5 +151,8 @@ function backtest(){
  auditRow('Dernier backtest',new Date().toISOString());auditRow('Backtest source',source);auditRow('Trades',trades.length);auditRow('Frais round-trip %',fee*200);auditRow('Slippage round-trip %',slip*200);auditRow('Net composé %',net);
 }
 $('realBtn').onclick=loadReal;$('refreshBtn').onclick=loadReal;$('simBtn').onclick=simulate;$('compareBtn').onclick=compare;$('backtestBtn').onclick=backtest;$('ofRefresh').onclick=loadOrderFlow;
-$('overall').textContent='MODE TEST — ORDRES DÉSACTIVÉS';simulate();loadOrderFlow();
+$('overall').textContent='CONNEXION AU FLUX RÉEL…';
+loadReal();loadOrderFlow();
+setInterval(()=>{if(source==='Coinbase public')loadReal();else { loadReal(); }},15000);
+setInterval(loadOrderFlow,15000);
 </script></body></html>
