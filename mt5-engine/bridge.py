@@ -115,21 +115,38 @@ class Handler(BaseHTTPRequestHandler):
                     "comment": str(d.comment), "magic": int(d.magic)})
             return self.send_json(200, {"ok": True, "count": len(rows), "days": days, "deals": rows,
                                         "observed_at": datetime.now(timezone.utc).isoformat(), "read_only": True})
-        if path == "/history/xauusd":
+        if path in ("/history", "/history/xauusd"):
             query = parse_qs(urlparse(self.path).query)
+            symbol = (query.get("symbol", ["XAUUSD"])[0] or "XAUUSD").upper()
+            timeframe_name = (query.get("timeframe", ["M15"])[0] or "M15").upper()
+            allowed_symbols = {"BTCUSD", "XAUUSD", "EURUSD", "GBPUSD", "USDJPY"}
+            timeframes = {"M1": mt5.TIMEFRAME_M1, "M5": mt5.TIMEFRAME_M5,
+                          "M15": mt5.TIMEFRAME_M15, "M30": mt5.TIMEFRAME_M30,
+                          "H1": mt5.TIMEFRAME_H1, "H4": mt5.TIMEFRAME_H4,
+                          "D1": mt5.TIMEFRAME_D1}
+            if symbol not in allowed_symbols:
+                return self.send_json(400, {"ok": False, "error": "Symbole non autorisé", "read_only": True})
+            if timeframe_name not in timeframes:
+                return self.send_json(400, {"ok": False, "error": "Timeframe non autorisé", "allowed": list(timeframes), "read_only": True})
             try:
-                count = max(10, min(500, int(query.get("count", ["100"])[0])))
+                count = max(50, min(500, int(query.get("count", ["200"])[0])))
             except ValueError:
-                count = 100
-            rates = mt5.copy_rates_from_pos("XAUUSD", mt5.TIMEFRAME_M15, 0, count)
-            if rates is None:
-                return self.send_json(503, {"ok": False, "error": "Historique XAUUSD indisponible",
-                                            "mt5_error": str(mt5.last_error())})
+                count = 200
+            info = mt5.symbol_info(symbol)
+            if info is None:
+                return self.send_json(404, {"ok": False, "error": "Symbole MT5 introuvable", "symbol": symbol})
+            if not info.visible and not mt5.symbol_select(symbol, True):
+                return self.send_json(503, {"ok": False, "error": "Impossible d'activer le symbole", "symbol": symbol})
+            rates = mt5.copy_rates_from_pos(symbol, timeframes[timeframe_name], 0, count)
+            if rates is None or len(rates) == 0:
+                return self.send_json(503, {"ok": False, "error": "Historique MT5 indisponible", "symbol": symbol,
+                                            "mt5_error": str(mt5.last_error()), "read_only": True})
             bars = [{"time": int(r["time"]), "open": float(r["open"]),
                      "high": float(r["high"]), "low": float(r["low"]),
                      "close": float(r["close"]), "tick_volume": int(r["tick_volume"])}
                     for r in rates]
-            return self.send_json(200, {"ok": True, "symbol": "XAUUSD", "timeframe": "M15", "bars": bars})
+            return self.send_json(200, {"ok": True, "symbol": symbol, "timeframe": timeframe_name,
+                                        "bars": bars, "read_only": True})
         if path in ("/health", "/accounts"):
             account = account_status()
             return self.send_json(200 if account.get("connected") else 503,
