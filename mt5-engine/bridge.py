@@ -1,15 +1,23 @@
 """Authenticated read-only status bridge for the currently logged-in MT5 terminal."""
 import json
 import os
+import time
+import threading
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
+from urllib.request import Request, urlopen
 
 import MetaTrader5 as mt5
 
 HOST = os.getenv("MT5_BRIDGE_HOST", "127.0.0.1")
 PORT = int(os.getenv("MT5_BRIDGE_PORT", "8765"))
 TOKEN = os.getenv("MT5_BRIDGE_TOKEN", "")
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID", "")
+SIGNAL_TIMEFRAME = mt5.TIMEFRAME_M15
+_last_signal_key = None
+_signal_lock = threading.Lock()
 
 
 def account_status():
@@ -36,6 +44,81 @@ def account_status():
     }
 
 
+
+def calculate_signal():
+    """Read-only SMA crossover on closed MT5 M15 bars; never places orders."""
+    symbol = os.getenv("MT5_SIGNAL_SYMBOL", "XAUUSD").upper()
+    info = mt5.symbol_info(symbol)
+    if info is None:
+        return {"ok": False, "status": "symbol_unavailable", "error": "Symbole MT5 introuvable", "symbol": symbol}
+    if not info.visible and not mt5.symbol_select(symbol, True):
+        return {"ok": False, "status": "symbol_unavailable", "error": "Impossible d'activer le symbole", "symbol": symbol}
+    rates = mt5.copy_rates_from_pos(symbol, SIGNAL_TIMEFRAME, 1, 60)
+    if rates is None or len(rates) < 22:
+        return {"ok": False, "status": "history_unavailable", "error": "Historique M15 insuffisant", "mt5_error": str(mt5.last_error())}
+    closes = [float(r["close"]) for r in rates]
+    def sma(values, n):
+        return sum(values[-n:]) / n
+    # Compare the two most recent closed candles without using the forming candle.
+    fast_prev, slow_prev = sma(closes[:-1], 8), sma(closes[:-1], 21)
+    fast_now, slow_now = sma(closes, 8), sma(closes, 21)
+    side = "BUY" if fast_prev <= slow_prev and fast_now > slow_now else "SELL" if fast_prev >= slow_prev and fast_now < slow_now else "NONE"
+    candle_time = int(rates[-1]["time"])
+    tick = mt5.symbol_info_tick(symbol)
+    tick_time = int(tick.time) if tick else 0
+    quote_age = max(0, int(time.time()) - tick_time) if tick_time else None
+    fresh = quote_age is not None and quote_age <= 1800 and tick is not None and tick.bid > 0 and tick.ask > 0
+    return {
+        "ok": True, "symbol": symbol, "timeframe": "M15", "strategy": "SMA 8/21 crossover",
+        "signal": side if fresh else "NONE",
+        "reason": "Croisement confirmé sur bougie clôturée" if side != "NONE" and fresh else ("Cotations MT5 trop anciennes : aucun signal envoyé" if not fresh else "Aucun nouveau croisement"),
+        "fast_sma": round(fast_now, int(info.digits)), "slow_sma": round(slow_now, int(info.digits)),
+        "last_closed_candle_time": datetime.fromtimestamp(candle_time, timezone.utc).isoformat(),
+        "bid": float(tick.bid) if tick else None, "ask": float(tick.ask) if tick else None,
+        "quote_time": datetime.fromtimestamp(tick_time, timezone.utc).isoformat() if tick_time else None,
+        "quote_age_seconds": quote_age, "fresh": fresh, "read_only": True,
+        "observed_at": datetime.now(timezone.utc).isoformat()
+    }
+
+
+def send_telegram_signal(signal):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return False
+    message = (
+        f"FORTERESS QUANT LAB — SIGNAL {signal['signal']}\n"
+        f"{signal['symbol']} · {signal['timeframe']}\n"
+        f"Stratégie : {signal['strategy']}\n"
+        f"Bid/Ask : {signal['bid']} / {signal['ask']}\n"
+        f"Bougie clôturée UTC : {signal['last_closed_candle_time']}\n"
+        "Flux frais : oui\nMode : signal uniquement — aucun ordre envoyé"
+    )
+    payload = json.dumps({"chat_id": TELEGRAM_CHAT_ID, "text": message}).encode("utf-8")
+    request = Request("https://api.telegram.org/bot" + TELEGRAM_BOT_TOKEN + "/sendMessage",
+                      data=payload, headers={"Content-Type": "application/json"}, method="POST")
+    try:
+        with urlopen(request, timeout=8) as response:
+            return 200 <= response.status < 300
+    except Exception as exc:
+        print(f"Telegram notification failed: {exc}")
+        return False
+
+
+def signal_watcher():
+    global _last_signal_key
+    while True:
+        try:
+            if mt5.initialize():
+                result = calculate_signal()
+                if result.get("ok") and result.get("fresh") and result.get("signal") in ("BUY", "SELL"):
+                    key = f"{result['symbol']}:{result['timeframe']}:{result['last_closed_candle_time']}:{result['signal']}"
+                    with _signal_lock:
+                        if key != _last_signal_key and send_telegram_signal(result):
+                            _last_signal_key = key
+                            print(f"Telegram signal sent: {key}")
+        except Exception as exc:
+            print(f"Signal watcher error: {exc}")
+        time.sleep(15)
+
 class Handler(BaseHTTPRequestHandler):
     def send_json(self, status, payload):
         raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
@@ -50,6 +133,11 @@ class Handler(BaseHTTPRequestHandler):
         if not TOKEN or self.headers.get("Authorization") != "Bearer " + TOKEN:
             return self.send_json(401, {"ok": False, "error": "Unauthorized"})
         path = urlparse(self.path).path
+        if path == "/signals":
+            if not mt5.initialize():
+                return self.send_json(503, {"ok": False, "error": "MT5 initialize failed", "mt5_error": str(mt5.last_error())})
+            result = calculate_signal()
+            return self.send_json(200 if result.get("ok") else 503, result)
         if path in ("/health", "/accounts"):
             if not mt5.initialize():
                 return self.send_json(503, {"ok": False, "error": "MT5 initialize failed",
@@ -145,6 +233,13 @@ if __name__ == "__main__":
         raise SystemExit("Définis MT5_BRIDGE_TOKEN avant de démarrer le pont.")
     print(f"Pont MT5 lecture seule actif sur {HOST}:{PORT}")
     print("Le pont ne contient aucune fonction d'envoi d'ordre.")
+    if TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID:
+        if not mt5.initialize():
+            print(f"MT5 initialization failed: {mt5.last_error()}")
+        threading.Thread(target=signal_watcher, daemon=True).start()
+        print("Surveillance des signaux M15 active ; alertes Telegram activées.")
+    else:
+        print("Alertes Telegram non configurées ; définir TELEGRAM_BOT_TOKEN et TELEGRAM_CHAT_ID pour les activer.")
     try:
         ThreadingHTTPServer((HOST, PORT), Handler).serve_forever()
     finally:
